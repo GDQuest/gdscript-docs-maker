@@ -60,16 +60,16 @@ def _get_property_data(line: str) -> dict:
         return {}
 
     setter, getter = "", ""
-    if match.group(7):
+    if match[7]:
         match_setget = re.match(r"setget (set_\w+)?,? ?(get_\w+)?", line)
         if match_setget:
             setter = match_setget.group(1)
             getter = match_setget.group(2)
 
     return {
-        "identifier": match.group(3),
-        "type": match.group(4),
-        "value": match.group(5),
+        "identifier": match[3],
+        "type": match[4],
+        "value": match[5],
         "setter": setter,
         "getter": getter,
     }
@@ -86,10 +86,10 @@ def _get_function_data(line: str) -> dict:
     if not match:
         return []
 
-    data["name"] = match.group(1)
-    data["type"] = match.group(3)
+    data["name"] = match[1]
+    data["type"] = match[3]
     arguments = []
-    args: str = match.group(2).strip()
+    args: str = match[2].strip()
     if args:
         for arg in args.split(","):
             match_arg = re.match(r"(\w+) ?: ?(\w*)", line)
@@ -118,14 +118,14 @@ def _get_signal_data(line: str) -> dict:
     return data
 
 
-def _get_subclass_data(line: str="") -> dict:
+def _get_subclass_data(line: str = "") -> dict:
     """Returns a dictionary that contains information about a subclass"""
     data: dict = {
         "name": "",
     }
     match = re.match(r"class (.+):$", line)
     if match:
-        data["name"] = match.group(1)
+        data["name"] = match[1]
     return data
 
 
