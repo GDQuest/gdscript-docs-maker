@@ -17,12 +17,12 @@ def _collect_reference_statements(gdscript: List[str]) -> List[Statement]:
     """Returns a StatementsList of the lines to process for the docs"""
     statements: List[Statement] = []
     types_map: dict = {
-        "var": "property",
-        "onready": "property",
-        "export": "property",
-        "signal": "signal",
-        "func": "function",
-        "class": "subclass",
+        "var": "properties",
+        "onready": "properties",
+        "export": "properties",
+        "signal": "signals",
+        "func": "functions",
+        "class": "subclasses",
     }
     for index, line in enumerate(gdscript):
         for pattern in types_map:
@@ -137,16 +137,16 @@ def get_file_reference(gdscript: List[str]) -> dict:
     gdscript: List[str] -- (default "")
     """
     data: dict = {
-        "property": [],
-        "signal": [],
-        "function": [],
-        "subclass": [],
+        "properties": [],
+        "signals": [],
+        "functions": [],
+        "subclasses": [],
     }
     functions_map: dict = {
-        "property": _get_property_data,
-        "function": _get_function_data,
-        "signal": _get_signal_data,
-        "subclass": _get_subclass_data,
+        "properties": _get_property_data,
+        "functions": _get_function_data,
+        "signals": _get_signal_data,
+        "subclasses": _get_subclass_data,
     }
     statements: List[Statement] = _collect_reference_statements(gdscript)
     for statement in statements:
