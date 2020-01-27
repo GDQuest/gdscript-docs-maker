@@ -48,6 +48,31 @@ def _find_docstring(gdscript: List[str], statement: Statement) -> List[str]:
     return docstring
 
 
+def _get_class_data(gdscript: List[str]) -> dict:
+    """Returns a dictionary that contains information about the GDScript class. The function
+    only reads lines in the document up to the first line that doesn't start with #,
+    tool, extends, or class_name.
+    """
+    data: dict = {
+        "is_tool": False,
+        "class_name": "",
+        "extends": "",
+        "docstring": [],
+    }
+    for line in gdscript:
+        if line.startswith("tool"):
+            data["is_tool"] = True
+        elif line.startswith("class_name"):
+            data["class_name"] = re.sub(r"(class_name)?(,.+)?", "", line).strip(" \n")
+        elif line.startswith("extends"):
+            data["extends"] = line.replace("extends ", "", 1)
+        elif line.startswith("#"):
+            data["docstring"].append(line.strip(" #"))
+        else:
+            break
+    return data
+
+
 def _get_property_data(line: str) -> dict:
     """Returns a dictionary that contains information about a member variable"""
     # Groups 3, 4, and 5 respectively match the symbol, type, and value
@@ -136,7 +161,9 @@ def get_file_reference(gdscript: List[str]) -> dict:
     Keyword Arguments:
     gdscript: List[str] -- (default "")
     """
-    data: dict = {
+    class_reference: dict = _get_class_data(gdscript)
+
+    class_data: dict = {
         "properties": [],
         "signals": [],
         "functions": [],
@@ -154,5 +181,6 @@ def get_file_reference(gdscript: List[str]) -> dict:
         statement_data: dict = functions_map[statement.type](statement.line)
         reference_data: dict = statement_data
         reference_data["docstring"] = docstring
-        data[statement.type].append(reference_data)
-    return data
+        class_data[statement.type].append(reference_data)
+    class_reference["data"] = class_data
+    return class_reference
