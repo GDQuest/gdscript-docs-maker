@@ -104,10 +104,17 @@ def _get_function_data(line: str) -> dict:
 
 def _get_signal_data(line: str) -> dict:
     """Returns a dictionary that contains information about a signal"""
-    data: dict = {
-        "name": "",
-        "arguments": "",
-    }
+    data: dict = {"name": "", "arguments": []}
+    # Matches the signal name and optionally a list of arguments
+    match = re.match(r"^signal (\w+)(\(.*\))?\s*$", line)
+    if not match:
+        return data
+
+    data["name"] = match[1]
+    if match.group(2):
+        arguments = match[2].split(",")
+        for argument in arguments:
+            data["arguments"].append(argument.strip("() "))
     return data
 
 
