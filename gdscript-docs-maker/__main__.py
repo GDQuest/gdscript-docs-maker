@@ -15,9 +15,9 @@ def main():
         with open(file_path, "r") as gdscript_file:
             gdscript: List[str] = gdscript_file.readlines()
             file_name: str = os.path.basename(file_path)
-            file_data: dict = {
-                file_name: collect_reference.get_file_reference(gdscript)
-            }
+            file_data: dict = collect_reference.get_file_reference(gdscript)
+            if not file_data["class_name"]:
+                file_data["class_name"] = file_name.split(".gd")[0].strip()
             reference.append(file_data)
     reference_as_json = json.dumps(reference, indent=4)
     print(reference_as_json)
