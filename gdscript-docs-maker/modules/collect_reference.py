@@ -65,7 +65,7 @@ def _get_class_data(gdscript: List[str]) -> dict:
         elif line.startswith("class_name"):
             data["class_name"] = re.sub(r"(class_name)?(,.+)?", "", line).strip(" \n")
         elif line.startswith("extends"):
-            data["extends"] = line.replace("extends ", "", 1)
+            data["extends"] = line.replace("extends ", "", 1).strip(" \n")
         elif line.startswith("#"):
             data["docstring"].append(line.strip(" #"))
         else:
