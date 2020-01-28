@@ -28,11 +28,11 @@ python -m gdscript-docs-maker ~/Repositories/godot-steering-toolkit/src/referenc
 
 ## Writing your code reference ##
 
-We document properties and functions with comment blocks placed on the line before their definition:
+Document properties and functions with comment blocks placed on the line before their definition:
 
 ```gdscript
-class_name GSTTargetAcceleration
 # A linear and angular amount of acceleration.
+class_name GSTTargetAcceleration
 
 
 # Linear acceleration
