@@ -1,10 +1,18 @@
 # GDScript Docs Maker #
 
-Docs Maker is a command-line program that parses your Godot GDScript code and outputs a code reference or documentation as JSON.
+Docs Maker is a set of tools to parse Godot GDScript code, output a code
+reference or documentation as JSON, merge json files together, and convert the
+JSON data to markdown.
 
 The program is still a work-in-progress.
 
-## Getting started ##
+## Generating a code reference as JSON ##
+
+To generate code references, we rely on the GDScript language server in Godot 3.2+. This involves running an EditorScript from your Godot project.
+
+For more information and detailed instructions, see [/godot-scripts](./godot-scripts).
+
+## Converting JSON ##
 
 Call the `gdscript-docs-maker` package directly using the `python -m` option:
 
@@ -12,16 +20,10 @@ Call the `gdscript-docs-maker` package directly using the `python -m` option:
 python -m gdscript-docs-maker files [files ...]
 ```
 
-The program takes a list of GDScript files to parse. For example, we generate the code reference of our AI framework [Godot Steering Toolkit]() like so with the fish shell:
+The program takes a list of JSON files. For example, we generate the code reference of our AI framework [Godot Steering Toolkit](https://github.com/GDQuest/godot-steering-toolkit/) like so with the shell:
 
 ```fish
-python -m gdscript-docs-maker ~/Repositories/godot-steering-toolkit/project/src/**.gd
-```
-
-With bash:
-
-```bash
-python -m gdscript-docs-maker `find ~/Repositories/godot-steering-toolkit -iname '*.gd'`
+python -m gdscript-docs-maker ~/Repositories/godot-steering-toolkit/src/reference.json
 ```
 
 ## Writing your code reference ##
