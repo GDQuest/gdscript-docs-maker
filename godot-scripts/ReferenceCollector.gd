@@ -63,17 +63,22 @@ func find_files(dirpath := "", patterns := PoolStringArray(), is_recursive := fa
 # Saves text to a file.
 func save_text(path := "", content := "") -> void:
 	var dirpath := path.get_base_dir()
-	var basename := path.get_basename()
+	var basename := path.get_file()
 	if not dirpath:
 		printerr("Couldn't save: the path %s is invalid." % path)
 		return
 	if not basename.is_valid_filename():
 		printerr("Couldn't save: the file name, %s, contains invalid characters." % basename)
 		return
-
+	
+	var directory := Directory.new()
+	if not directory.dir_exists(dirpath):
+		directory.make_dir(dirpath)
+	
 	var file := File.new()
+	
 	file.open(path, File.WRITE)
-	file.store_string(to_json(save_data))
+	file.store_string(to_json(content))
 	file.close()
 	print("Saved data to %s" % path)
 
@@ -84,7 +89,7 @@ func get_reference(files := PoolStringArray()) -> Array:
 	var reference := []
 	var workspace = Engine.get_singleton('GDScriptLanguageProtocol').get_workspace()
 	for file in files:
-		if not file.endswith(".gd"):
+		if not file.ends_with(".gd"):
 			continue
 		var symbols: Dictionary = workspace.generate_script_api(file)
 		reference.append(symbols)
@@ -95,5 +100,5 @@ func _run() -> void:
 	var files := PoolStringArray()
 	for dirpath in directories:
 		files.append_array(find_files(dirpath, patterns, is_recursive))
-	var json := to_json(_get_reference(files))
+	var json := to_json(get_reference(files))
 	save_text(save_path, json)
