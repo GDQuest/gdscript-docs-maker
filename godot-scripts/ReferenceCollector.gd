@@ -78,7 +78,7 @@ func save_text(path := "", content := "") -> void:
 	var file := File.new()
 	
 	file.open(path, File.WRITE)
-	file.store_string(to_json(content))
+	file.store_string(content)
 	file.close()
 	print("Saved data to %s" % path)
 
