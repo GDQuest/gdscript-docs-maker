@@ -28,7 +28,7 @@ def as_markdown(gdscript: GDScriptClass) -> MarkdownDocument:
     return MarkdownDocument(
         [
             make_comment(
-                "Auto-generated from JSON by GDScript docs maker."
+                "Auto-generated from JSON by GDScript docs maker. "
                 "Do not edit this document directly."
             ),
             *make_heading(gdscript.name, 1),
