@@ -14,6 +14,25 @@ class MarkdownDocument:
         return self.title + ".md"
 
 
+class MarkdownSection:
+    def __init__(self, title: str, heading_level: int, content: List[str]):
+        """Represents a section of a markdown document.
+
+        Keyword Arguments:
+        title: str         --
+        heading_level: int --
+        content: List[str] -- content of the section
+        """
+        self.title: List[str] = make_heading(title, heading_level)
+        self.content: List[str] = content
+
+    def is_empty(self) -> bool:
+        return not self.content
+
+    def as_text(self) -> List[str]:
+        return self.title + self.content if not self.is_empty() else []
+
+
 def convert_to_markdown(data: dict = {}) -> List[MarkdownDocument]:
     """Takes a dictionary that contains all the GDScript classes to convert to markdown
     and returns a list of markdown documents.
@@ -33,22 +52,20 @@ def as_markdown(gdscript: GDScriptClass) -> MarkdownDocument:
             ),
             *make_heading(gdscript.name, 1),
             make_bold("Extends:") + " " + gdscript.extends_as_string(),
-            *make_heading("Description", 2),
-            gdscript.description,
+            *MarkdownSection("Description", 2, [gdscript.description]).as_text(),
             # Overview of the properties and methods
-            *make_heading("Properties", 2),
-            *summarize_members(gdscript),
-            *make_heading("Methods", 2),
-            *summarize_methods(gdscript),
-            *make_heading("Signals", 2),
-            *write_signals(gdscript.signals),
+            *MarkdownSection("Properties", 2, summarize_members(gdscript)).as_text(),
+            *MarkdownSection("Methods", 2, summarize_methods(gdscript)).as_text(),
+            *MarkdownSection("Signals", 2, write_signals(gdscript.signals)).as_text(),
             # TODO
-            *make_heading("Enumerations", 2),
+            *MarkdownSection("Enumerations", 2, []).as_text(),
             # Full reference for the properties and methods.
-            *make_heading("Property Descriptions", 2),
-            *write_members(gdscript.members),
-            *make_heading("Method Descriptions", 2),
-            *write_methods(gdscript.methods),
+            *MarkdownSection(
+                "Property Descriptions", 2, write_members(gdscript.members)
+            ).as_text(),
+            *MarkdownSection(
+                "Method Descriptions", 2, write_methods(gdscript.methods)
+            ).as_text(),
         ],
         gdscript.name,
     )
@@ -67,6 +84,8 @@ def summarize_methods(gdscript: GDScriptClass) -> List[str]:
 
 
 def write_signals(signals: List[Signal]) -> List[str]:
+    if not signals:
+        return []
     return wrap_in_newlines(["- {}".format(s.signature) for s in signals])
 
 
