@@ -24,6 +24,7 @@ IF NOT EXIST %project_name% (
 echo Copying collector
 :: Copies the CLI gdscript to the project location so godot can find it in res://
 copy /Y godot-scripts\ReferenceCollectorCLI.gd %1\ReferenceCollectorCLI.gd
+copy /Y godot-scripts\Collector.gd %1\Collector.gd
 
 echo Running godot
 :: Runs godot in editor mode, runs the script ReferenceCollectorCLI, and quits
@@ -32,6 +33,7 @@ godot -e -q -s --no-window --path %1 ReferenceCollectorCLI.gd
 echo Cleaning up
 :: Removes the CLI tool from the project.
 erase /Q %1\ReferenceCollectorCLI.gd
+erase /Q %1\Collector.gd
 
 IF NOT EXIST %1\reference.json (
 	echo Collector failed - Json reference file not created
