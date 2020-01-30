@@ -143,10 +143,10 @@ def _get_methods(data: List[dict]) -> List[Method]:
                 description = description[:-1]
 
         method: Method = Method(
-            entry["signature"],
+            entry["signature"].replace("-> null", "-> void", 1),
             name,
             "".join(description),
-            entry["return_type"],
+            entry["return_type"].replace("null", "void", 1),
             _get_arguments(entry["arguments"]),
             entry["rpc_mode"],
             is_virtual,
