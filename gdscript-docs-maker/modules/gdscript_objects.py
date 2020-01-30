@@ -127,17 +127,19 @@ def _get_methods(data: List[dict]) -> List[Method]:
     for entry in data:
         # Skip buit-ins and private methods
         name: str = entry["name"]
-        description: str = entry["description"].strip(" \n")
+        description: str = entry["description"]
         if name in BUILTIN_VIRTUAL_CALLBACKS:
             continue
-        is_virtual: bool = name.startswith("_") and "virtual" in description.lower()
+
+        line_last: str = description.split("\n")[-1].strip()
+        is_virtual: bool = name.startswith("_") and line_last.lower() == "virtual"
         if not is_virtual:
             continue
 
         method: Method = Method(
             entry["signature"],
             name,
-            description,
+            description.strip(" \n"),
             entry["return_type"],
             _get_arguments(entry["arguments"]),
             entry["rpc_mode"],
