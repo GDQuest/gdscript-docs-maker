@@ -53,7 +53,14 @@ IF NOT EXIST dist (
 	EXIT /B -1
 )
 
-:: Puts the resulting distribution result into the project folder.
-move /Y dist %project_name%\dist
+IF EXIST %project_name%\dist (
+	:: Move all files in dist into project name dist
+	erase /Q %project_name%\dist
+	move /Y dist\* %project_name%\dist >nul
+	rmdir /q /s dist
+) ELSE (
+	:: Puts the resulting distribution result into the project folder.
+	move /Y dist %project_name%\dist
+)
 
 echo Done. Output now in %~dp0%project_name%\dist
