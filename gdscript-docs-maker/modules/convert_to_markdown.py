@@ -140,6 +140,10 @@ def make_code(text: str) -> str:
     return "`" + text + "`"
 
 
+def make_link(description: str, target: str) -> str:
+    return "[{}]({})".format(description, target)
+
+
 def make_table_header(cells: List[str]) -> List[str]:
     return [make_table_row(cells), " --- |" * (len(cells) - 1) + " --- "]
 
