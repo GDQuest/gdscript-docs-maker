@@ -44,10 +44,14 @@ def as_markdown(gdscript: GDScriptClass) -> MarkdownDocument:
             *summarize_members(gdscript),
             *make_heading("Methods", 2),
             *summarize_methods(gdscript),
+            # TODO
             *make_heading("Signals", 2),
+            # TODO
             *make_heading("Enumerations", 2),
             # Full reference for the properties and methods.
+            # TODO
             *make_heading("Property Descriptions", 2),
+            # TODO
             *make_heading("Method Descriptions", 2),
         ],
         gdscript.name,
