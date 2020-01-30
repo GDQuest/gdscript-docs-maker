@@ -3,6 +3,29 @@
 from dataclasses import dataclass
 from typing import List
 
+BUILTIN_VIRTUAL_CALLBACKS = [
+    "_process",
+    "_physics_process",
+    "_input",
+    "_unhandled_input",
+    "_gui_input",
+    "_draw",
+    "_get_configuration_warning",
+    "_ready",
+    "_enter_tree",
+    "_exit_tree",
+    "_get",
+    "_get_property_list",
+    "_init",
+    "_notification",
+    "_set",
+    "_to_string",
+    "_clips_input",
+    "_get_minimum_size",
+    "_gui_input",
+    "_make_custom_tooltip",
+]
+
 
 @dataclass
 class Argument:
@@ -26,6 +49,7 @@ class Method:
     return_type: str
     arguments: List[Argument]
     rpc_mode: int
+    is_virtual: bool
 
     def summarize(self) -> List[str]:
         return [self.return_type, self.signature]
@@ -101,13 +125,23 @@ def _get_signals(data: List[dict]) -> List[Signal]:
 def _get_methods(data: List[dict]) -> List[Method]:
     methods: List[Method] = []
     for entry in data:
+        # Skip buit-ins and private methods
+        name: str = entry["name"]
+        description: str = entry["description"].strip(" \n")
+        if name in BUILTIN_VIRTUAL_CALLBACKS:
+            continue
+        is_virtual: bool = name.startswith("_") and "virtual" in description.lower()
+        if not is_virtual:
+            continue
+
         method: Method = Method(
             entry["signature"],
-            entry["name"],
-            entry["description"].strip(" \n"),
+            name,
+            description,
             entry["return_type"],
             _get_arguments(entry["arguments"]),
             entry["rpc_mode"],
+            is_virtual,
         )
         methods.append(method)
     return methods
@@ -126,6 +160,9 @@ def _get_arguments(data: List[dict]) -> List[Argument]:
 def _get_members(data: List[dict]) -> List[Member]:
     members: List[Member] = []
     for entry in data:
+        # Skip private members
+        if entry["name"].startswith("_"):
+            continue
         member: Member = Member(
             entry["signature"],
             entry["name"],
