@@ -10,4 +10,7 @@ def parse(args=sys.argv) -> Namespace:
     parser.add_argument(
         "files", type=str, nargs="+", default="", help="A list of paths to JSON files."
     )
+    parser.add_argument(
+        "-p", "--path", type=str, default="dist", help="Path to the output directory"
+    )
     return parser.parse_args(args)

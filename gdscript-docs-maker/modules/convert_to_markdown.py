@@ -6,10 +6,10 @@ from typing import List
 @dataclass
 class MarkdownDocument:
     content: List[str]
-    name: str
+    title: str
 
     def get_filename(self):
-        return self.name + ".md"
+        return self.title + ".md"
 
 
 @dataclass
