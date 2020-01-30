@@ -11,6 +11,14 @@ class Argument:
 
 
 @dataclass
+class Signal:
+    signature: str
+    name: str
+    description: str
+    arguments: List[str]
+
+
+@dataclass
 class Method:
     signature: str
     name: str
@@ -61,6 +69,7 @@ class GDScriptClass:
     methods: List[Method]
     members: List[Member]
     static_functions: List[StaticFunction]
+    signals: List[Signal]
 
     @classmethod
     def from_dict(cls, data: dict):
@@ -72,10 +81,21 @@ class GDScriptClass:
             _get_methods(data["methods"]),
             _get_members(data["members"]),
             _get_static_functions(data["static_functions"]),
+            _get_signals(data["signals"]),
         )
 
     def extends_as_string(self) -> str:
         return " < ".join(self.extends)
+
+
+def _get_signals(data: List[dict]) -> List[Signal]:
+    signals: List[Signal] = []
+    for entry in data:
+        signal: Signal = Signal(
+            entry["signature"], entry["name"], entry["description"], entry["arguments"],
+        )
+        signals.append(signal)
+    return signals
 
 
 def _get_methods(data: List[dict]) -> List[Method]:
