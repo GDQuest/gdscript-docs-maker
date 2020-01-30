@@ -128,17 +128,19 @@ def _get_methods(data: List[dict]) -> List[Method]:
         # Skip buit-ins and private methods
         name: str = entry["name"]
         description: List[str] = entry["description"].split("\n")
-        description = [line.strip() for line in description]
+        description = [line.strip() for line in description if line != ""]
         if name in BUILTIN_VIRTUAL_CALLBACKS:
             continue
 
-        line_last: str = description[-1]
-        is_virtual: bool = line_last.lower() == "virtual"
-        is_private: bool = name.startswith("_") and not is_virtual
-        if is_private:
-            continue
-        if is_virtual:
-            description = description[:-1]
+        is_virtual: bool = False
+        if description:
+            line_last: str = description[-1]
+            is_virtual = line_last.lower() == "virtual"
+            is_private: bool = name.startswith("_") and not is_virtual
+            if is_private:
+                continue
+            if is_virtual:
+                description = description[:-1]
 
         method: Method = Method(
             entry["signature"],

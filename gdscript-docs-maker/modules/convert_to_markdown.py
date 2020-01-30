@@ -96,7 +96,8 @@ def write_methods(methods: List[Method]) -> List[str]:
     def write_method(method: Method) -> List[str]:
         markdown: List[str] = []
         markdown.extend(make_heading(method.name, 3))
-        markdown.append(make_code(method.signature))
+        signature: str = "virtual " + method.signature if method.is_virtual else method.signature
+        markdown.append(make_code(signature))
         if method.description:
             markdown.extend(["", method.description])
         return markdown
