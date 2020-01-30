@@ -28,7 +28,7 @@ copy /Y godot-scripts\Collector.gd %1\Collector.gd
 
 echo Running godot
 :: Runs godot in editor mode, runs the script ReferenceCollectorCLI, and quits
-godot -e -q -s --no-window --path %1 ReferenceCollectorCLI.gd
+godot -e -q -s --no-window --path %1 ReferenceCollectorCLI.gd >nul
 
 echo Cleaning up
 :: Removes the CLI tool from the project.
