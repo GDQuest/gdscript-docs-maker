@@ -16,7 +16,6 @@ BUILTIN_VIRTUAL_CALLBACKS = [
     "_exit_tree",
     "_get",
     "_get_property_list",
-    "_init",
     "_notification",
     "_set",
     "_to_string",
@@ -25,6 +24,8 @@ BUILTIN_VIRTUAL_CALLBACKS = [
     "_gui_input",
     "_make_custom_tooltip",
 ]
+
+TYPE_CONSTRUCTOR = "_init"
 
 
 @dataclass
@@ -131,17 +132,22 @@ def _get_methods(data: List[dict]) -> List[Method]:
         description = [line.strip() for line in description if line != ""]
         if name in BUILTIN_VIRTUAL_CALLBACKS:
             continue
+        
+        # Skip _init only if it has no arguments
+        if name == TYPE_CONSTRUCTOR and not entry["arguments"]:
+            continue
 
         is_virtual: bool = False
         if description:
             line_last: str = description[-1]
             is_virtual = line_last.lower() == "virtual"
-            is_private: bool = name.startswith("_") and not is_virtual
-            if is_private:
-                continue
             if is_virtual:
                 description = description[:-1]
 
+        is_private: bool = name.startswith("_") and not is_virtual and not name == TYPE_CONSTRUCTOR
+        if is_private:
+            continue
+        
         method: Method = Method(
             entry["signature"].replace("-> null", "-> void", 1),
             name,
