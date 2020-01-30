@@ -31,6 +31,10 @@ def _convert_class_to_markdown(data: dict = {}) -> MarkdownDocument:
 def as_markdown(gdscript: GDScriptClass) -> MarkdownDocument:
     return MarkdownDocument(
         [
+            make_comment(
+                "Auto-generated from JSON by GDScript docs maker."
+                "Do not edit this document directly."
+            ),
             *make_heading(gdscript.name, 1),
             make_bold("Extends:") + " " + gdscript.extends_as_string(),
             *make_heading("Description", 2),
@@ -84,3 +88,7 @@ def make_table_header(cells: List[str]) -> List[str]:
 
 def make_table_row(cells: List[str]) -> str:
     return " | ".join(cells)
+
+
+def make_comment(text: str) -> str:
+    return "<!-- {} -->".format(text)
