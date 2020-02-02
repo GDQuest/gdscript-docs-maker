@@ -76,3 +76,7 @@ func get_reference(files := PoolStringArray()) -> Array:
 		var symbols: Dictionary = workspace.generate_script_api(file)
 		reference.append(symbols)
 	return reference
+
+
+func print_pretty_json(reference: Array) -> String:
+	return JSON.print(reference, "  ")

@@ -16,5 +16,5 @@ func _init() -> void:
 	var files := PoolStringArray()
 	for dirpath in directories:
 		files.append_array(Collector.find_files(dirpath, patterns, is_recursive))
-	var json := to_json(Collector.get_reference(files))
+	var json: String = Collector.print_pretty_json(Collector.get_reference(files))
 	Collector.save_text("res://reference.json", json)
