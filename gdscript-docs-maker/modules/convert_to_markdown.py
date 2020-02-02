@@ -2,7 +2,8 @@
 from dataclasses import dataclass
 from typing import List
 
-from .gdscript_objects import GDScriptClass, Member, Method, Signal
+from .gdscript_objects import (GDScriptClass, Member, Method, Signal,
+                               StaticFunction)
 
 
 @dataclass
@@ -64,7 +65,9 @@ def as_markdown(gdscript: GDScriptClass) -> MarkdownDocument:
                 "Property Descriptions", 2, write_members(gdscript.members)
             ).as_text(),
             *MarkdownSection(
-                "Method Descriptions", 2, write_methods(gdscript.methods)
+                "Method Descriptions",
+                2,
+                write_functions(gdscript.methods, gdscript.static_functions),
             ).as_text(),
         ],
         gdscript.name,
@@ -80,7 +83,10 @@ def summarize_members(gdscript: GDScriptClass) -> List[str]:
 
 def summarize_methods(gdscript: GDScriptClass) -> List[str]:
     header: List[str] = make_table_header(["Type", "Name"])
-    return header + [make_table_row(method.summarize()) for method in gdscript.methods]
+    return header + [
+        make_table_row(method.summarize())
+        for method in gdscript.methods + gdscript.static_functions
+    ]
 
 
 def write_signals(signals: List[Signal]) -> List[str]:
@@ -111,17 +117,32 @@ def write_members(members: List[Member]) -> List[str]:
     return markdown
 
 
-def write_methods(methods: List[Method]) -> List[str]:
+def write_functions(
+    methods: List[Method], static_functions: List[StaticFunction]
+) -> List[str]:
     def write_method(method: Method) -> List[str]:
         markdown: List[str] = []
         markdown.extend(make_heading(method.name, 3))
-        signature: str = "virtual " + method.signature if method.is_virtual else method.signature
+        signature: str = method.signature
+        if method.is_virtual:
+            signature = make_bold("virtual") + " " + method.signature
         markdown.append(make_code(signature))
         if method.description:
             markdown.extend(["", method.description])
         return markdown
 
+    def write_static_function(static_function: StaticFunction) -> List[str]:
+        markdown: List[str] = []
+        markdown.extend(make_heading(static_function.name, 3))
+        signature: str = make_bold("static") + " " + static_function.signature
+        markdown.append(make_code(signature))
+        if static_function.description:
+            markdown.extend(["", static_function.description])
+        return markdown
+
     markdown: List[str] = []
+    for function in static_functions:
+        markdown += write_static_function(function)
     for method in methods:
         markdown += write_method(method)
     return markdown

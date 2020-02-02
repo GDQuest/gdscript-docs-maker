@@ -129,10 +129,12 @@ def _get_methods(data: List[dict]) -> List[Method]:
         # Skip buit-ins and private methods
         name: str = entry["name"]
         description: List[str] = entry["description"].split("\n")
-        description_flattened: List[str] = [line.strip() for line in description if line != ""]
+        description_flattened: List[str] = [
+            line.strip() for line in description if line != ""
+        ]
         if name in BUILTIN_VIRTUAL_CALLBACKS:
             continue
-        
+
         # Skip _init only if it has no arguments
         if name == TYPE_CONSTRUCTOR and not entry["arguments"]:
             continue
@@ -142,10 +144,12 @@ def _get_methods(data: List[dict]) -> List[Method]:
             line_last: str = description_flattened[-1]
             is_virtual = line_last.lower() == "virtual"
 
-        is_private: bool = name.startswith("_") and not is_virtual and not name == TYPE_CONSTRUCTOR
+        is_private: bool = name.startswith(
+            "_"
+        ) and not is_virtual and not name == TYPE_CONSTRUCTOR
         if is_private:
             continue
-        
+
         description = [line.strip() for line in description]
         if is_virtual:
             description = description[:-2]
