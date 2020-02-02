@@ -51,6 +51,7 @@ class Method:
     arguments: List[Argument]
     rpc_mode: int
     is_virtual: bool
+    tags: List[str]
 
     def summarize(self) -> List[str]:
         return [self.return_type, self.signature]
@@ -63,6 +64,7 @@ class StaticFunction:
     description: str
     return_type: str
     arguments: List[Argument]
+    tags: List[str]
 
     def summarize(self) -> List[str]:
         return [self.return_type, self.signature]
@@ -80,6 +82,7 @@ class Member:
     is_exported: bool
     setter: str
     getter: str
+    tags: List[str]
 
     def summarize(self) -> List[str]:
         return [self.type, self.name]
@@ -95,22 +98,37 @@ class GDScriptClass:
     members: List[Member]
     static_functions: List[StaticFunction]
     signals: List[Signal]
+    tags: List[str]
 
     @classmethod
     def from_dict(cls, data: dict):
+        description: str = data["description"].strip(" \n")
+        tags: List[str] = get_tags(description)
         return GDScriptClass(
             data["name"],
             data["extends_class"],
-            data["description"].strip(" \n"),
+            description,
             data["path"],
             _get_methods(data["methods"]),
             _get_members(data["members"]),
             _get_static_functions(data["static_functions"]),
             _get_signals(data["signals"]),
+            tags,
         )
 
     def extends_as_string(self) -> str:
         return " < ".join(self.extends)
+
+
+def get_tags(description: str) -> List[str]:
+    tags: List[str] = []
+    lines: List[str] = description.split("\n")
+    for line in lines:
+        if not line.strip().lower().startswith("tags:"):
+            continue
+        tags = line.replace("tags:", "", 1).split(",")
+        tags = list(map(lambda t: t.strip(), tags))
+    return tags
 
 
 def _get_signals(data: List[dict]) -> List[Signal]:
@@ -154,14 +172,17 @@ def _get_methods(data: List[dict]) -> List[Method]:
         if is_virtual:
             description = description[:-2]
 
+        description_string: str = "\n ".join(description)
+
         method: Method = Method(
             entry["signature"].replace("-> null", "-> void", 1),
             name,
-            "\n ".join(description),
+            description_string,
             entry["return_type"].replace("null", "void", 1),
             _get_arguments(entry["arguments"]),
             entry["rpc_mode"],
             is_virtual,
+            get_tags(description_string),
         )
         methods.append(method)
     return methods
@@ -183,15 +204,17 @@ def _get_members(data: List[dict]) -> List[Member]:
         # Skip private members
         if entry["name"].startswith("_"):
             continue
+        description: str = entry["description"].strip(" \n")
         member: Member = Member(
             entry["signature"],
             entry["name"],
-            entry["description"].strip(" \n"),
+            description,
             entry["data_type"],
             entry["default_value"],
             entry["export"],
             entry["setter"],
             entry["getter"],
+            get_tags(description),
         )
         members.append(member)
     return members
@@ -200,12 +223,14 @@ def _get_members(data: List[dict]) -> List[Member]:
 def _get_static_functions(data: List[dict]) -> List[StaticFunction]:
     static_functions: List[StaticFunction] = []
     for entry in data:
+        description: str = entry["description"].strip(" \n")
         static_function: StaticFunction = StaticFunction(
             entry["signature"],
             entry["name"],
-            entry["description"].strip(" \n"),
+            description,
             entry["return_type"],
             _get_arguments(entry["arguments"]),
+            get_tags(description),
         )
         static_functions.append(static_function)
     return static_functions
