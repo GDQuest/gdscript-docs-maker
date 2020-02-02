@@ -1,5 +1,5 @@
 import logging
 
 LOGGER = logging.getLogger("GDScript docs maker")
-LOG_LEVEL = [logging.INFO, logging.DEBUG]
-LOG_LEVEL = [None] + sorted(LOG_LEVEL, reverse=True)
+LOG_LEVELS = [logging.INFO, logging.DEBUG]
+LOG_LEVELS = [0] + sorted(LOG_LEVELS, reverse=True)
