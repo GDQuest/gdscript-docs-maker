@@ -13,4 +13,21 @@ def parse(args=sys.argv) -> Namespace:
     parser.add_argument(
         "-p", "--path", type=str, default="dist", help="Path to the output directory"
     )
-    return parser.parse_args(args)
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="count",
+        default=0,
+        help="Set the verbosity level. For example, -vv sets the verbosity level to 2. Default: 0.",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help=(
+            "Run the script without actual rendering or creating files and"
+            " folders. For debugging purposes"
+        ),
+    )
+    namespace: Namespace = parser.parse_args(args)
+    namespace.verbose = 99999 if namespace.dry_run else namespace.verbose
+    return namespace

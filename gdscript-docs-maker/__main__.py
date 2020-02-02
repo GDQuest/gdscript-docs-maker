@@ -3,17 +3,21 @@ document.
 """
 import json
 import os
+import logging
 from argparse import Namespace
 from itertools import repeat
 from typing import List
 
 from .modules import command_line
 from .modules.convert_to_markdown import MarkdownDocument, convert_to_markdown
+from .modules.config import LOGGER, LOG_LEVEL
 
 
 def main():
     args: Namespace = command_line.parse()
+    logging.basicConfig(level=LOG_LEVEL[min(args.verbose, len(LOG_LEVEL) - 1)])
     json_files: List[str] = [f for f in args.files if f.lower().endswith(".json")]
+    LOGGER.info("Processing JSON files: {}".format(json_files))
     for f in json_files:
         with open(f, "r") as json_file:
             data: dict = json.loads(json_file.read())
