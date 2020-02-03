@@ -2,15 +2,15 @@
 document.
 """
 import json
-import os
 import logging
+import os
 from argparse import Namespace
 from itertools import repeat
 from typing import List
 
 from .modules import command_line
+from .modules.config import LOG_LEVELS, LOGGER
 from .modules.convert_to_markdown import MarkdownDocument, convert_to_markdown
-from .modules.config import LOGGER, LOG_LEVELS
 
 
 def main():
@@ -21,9 +21,20 @@ def main():
     for f in json_files:
         with open(f, "r") as json_file:
             data: dict = json.loads(json_file.read())
+
+            classes_count: int = len(data)
+            LOGGER.info(
+                "Processing {} classes in {}".format(classes_count, os.path.basename(f))
+            )
+
             documents: List[MarkdownDocument] = convert_to_markdown(data)
             if not os.path.exists(args.path):
+                LOGGER.info("Creating directory " + args.path)
                 os.mkdir(args.path)
+
+            LOGGER.info(
+                "Saving {} markdown files to {}".format(classes_count, args.path)
+            )
             list(map(save, documents, repeat(args.path)))
 
 
@@ -32,6 +43,7 @@ def save(
 ):
     path: str = os.path.join(dirpath, document.get_filename())
     with open(path, "w") as file_out:
+        LOGGER.debug("Saving markdown file " + path)
         file_out.writelines("\n".join(document.content))
 
 
