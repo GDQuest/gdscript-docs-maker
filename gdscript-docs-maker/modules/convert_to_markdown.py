@@ -99,7 +99,7 @@ def write_members(members: List[Member]) -> List[str]:
     def write_member(member: Member) -> List[str]:
         markdown: List[str] = []
         markdown.extend(make_heading(member.name, 3))
-        markdown.extend([make_code(member.signature), ""])
+        markdown.extend([make_code_inline(member.signature), ""])
         if member.setter or member.setter:
             setget: List[str] = []
             if member.setter:
@@ -122,22 +122,22 @@ def write_functions(
 ) -> List[str]:
     def write_method(method: Method) -> List[str]:
         markdown: List[str] = []
-        markdown.extend(make_heading(method.name, 3))
-        signature: str = method.signature
+        heading: str = method.name
         if method.is_virtual:
-            signature = make_bold("virtual") + " " + method.signature
-        markdown.append(make_code(signature))
+            heading += " " + surround_with_html("(virtual)", "small")
+        markdown.extend(make_heading(heading, 3))
+        markdown.append(make_code_block(method.signature, "gdscript"))
         if method.description:
             markdown.extend(["", method.description])
         return markdown
 
-    def write_static_function(static_function: StaticFunction) -> List[str]:
+    def write_static_function(function: StaticFunction) -> List[str]:
         markdown: List[str] = []
-        markdown.extend(make_heading(static_function.name, 3))
-        signature: str = make_bold("static") + " " + static_function.signature
-        markdown.append(make_code(signature))
-        if static_function.description:
-            markdown.extend(["", static_function.description])
+        heading = function.name + " " + surround_with_html("(static)", "small")
+        markdown.extend(make_heading(heading, 3))
+        markdown.append(make_code_inline(function.signature))
+        if function.description:
+            markdown.extend(["", function.description])
         return markdown
 
     markdown: List[str] = []
@@ -176,9 +176,14 @@ def make_italic(text: str) -> str:
     return "*" + text + "*"
 
 
-def make_code(text: str) -> str:
+def make_code_inline(text: str) -> str:
     """Returns the text surrounded by `"""
     return "`" + text + "`"
+
+
+def make_code_block(text: str, language: str = "") -> str:
+    """Returns the text surrounded by `"""
+    return "```{}\n{}\n```".format(language, text)
 
 
 def make_link(description: str, target: str) -> str:
@@ -195,3 +200,7 @@ def make_table_row(cells: List[str]) -> str:
 
 def make_comment(text: str) -> str:
     return "<!-- {} -->".format(text)
+
+
+def surround_with_html(text: str, tag: str) -> str:
+    return "<{}>{}</{}>".format(tag, text, tag)
