@@ -8,14 +8,18 @@ You can find more detailed instructions inside the GDScript code itself.
 
 ## CLI version ##
 
-An alternative to running the EditorScript is to use a command-line version of the tool found in the root of the repository. It requires `godot` to be in the PATH environment variable.
+An alternative to running the EditorScript is to use a command-line version of the tool found in the root of the repository. It requires Godot to be in the PATH environment variable.
 
 - **Windows**
-
-```batch
-windows.bat path/to/project project-name
+```bash
+generate_reference path\to\project project-name
+```
+- **Unix**
+```bash
+sh generate_reference.sh path/to/project project-name
 ```
 
-`project-name` is optional - it will default to "project", and is the folder the distribution will be output into.
+- The first parameter should be a path to a directory that contains a `project.godot` file.
+- `project-name` is the folder the distribution will be output into
 
 This script will copy the collector CLI script, run godot and quit, run the python module, and output the results into `project-name`.

@@ -15,7 +15,7 @@ from .modules.config import LOGGER, LOG_LEVELS
 
 def main():
     args: Namespace = command_line.parse()
-    logging.basicConfig(level=LOG_LEVEL[min(args.verbose, len(LOG_LEVELS) - 1)])
+    logging.basicConfig(level=LOG_LEVELS[min(args.verbose, len(LOG_LEVELS) - 1)])
     json_files: List[str] = [f for f in args.files if f.lower().endswith(".json")]
     LOGGER.info("Processing JSON files: {}".format(json_files))
     for f in json_files:

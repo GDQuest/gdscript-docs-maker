@@ -126,11 +126,11 @@ def get_tags(description: str) -> Tuple[str, List[str]]:
     lines: List[str] = description.split("\n")
     description_trimmed = []
     for index, line in enumerate(lines):
-        line = line.strip().lower()
-        if not line.startswith("tags:"):
+        tag_line: str = line.strip().lower()
+        if not tag_line.startswith("tags:"):
             description_trimmed.append(line)
             continue
-        tags = line.replace("tags:", "", 1).split(",")
+        tags = tag_line.replace("tags:", "", 1).split(",")
         tags = list(map(lambda t: t.strip(), tags))
     return "\n".join(description_trimmed), tags
 
