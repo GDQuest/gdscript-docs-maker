@@ -5,7 +5,7 @@ import os
 def _get_hugo_templates() -> dict:
     templates: dict = {}
     this_file_path: str = os.path.dirname(__file__)
-    template_path: str = os.path.join(this_file_path, "./data/hugo/front_matter.toml")
+    template_path: str = os.path.join(this_file_path, "data/hugo/front_matter.toml")
     with open(template_path, "r") as file_toml:
         templates["toml"] = file_toml.read()
     return templates
