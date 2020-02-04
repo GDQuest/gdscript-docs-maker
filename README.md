@@ -1,32 +1,36 @@
 # GDScript Docs Maker #
 
-Docs Maker is a set of tools to parse Godot GDScript code, output a code
-reference or documentation as JSON, merge json files together, and convert the
-JSON data to markdown.
+Docs Maker is a set of tools to convert documentation you write inside your code to an online or offline code reference in the markdown format.
 
-The program is still a work-in-progress.
+If you make plugins or a framework for Godot, GDScript Docs Maker will help you save a lot of time documenting your code.
 
-## Generating a code reference as JSON ##
+It creates documents following Godot's built-in class reference.
 
-To generate code references, we rely on the GDScript language server in Godot 3.2+. This involves running an EditorScript from your Godot project.
+<!-- TODO: turn into a note block on the website. -->
+**Note**: This program requires Godot 3.2+ and Python 3.7+ to work.
 
-For more information and detailed instructions, see [/godot-scripts](./godot-scripts).
+## Installing ##
 
-## Converting JSON ##
+You can install GDScript Docs Maker with pip:
 
-Call the `gdscript-docs-maker` package directly using the `python -m` option:
+```bash
+# On Linux and MacOS:
+python3 -m pip install gdscript_docs_maker
 
-```
-python -m gdscript-docs-maker files [files ...]
-```
-
-The program takes a list of JSON files. For example, we generate the code reference of our AI framework [Godot Steering Toolkit](https://github.com/GDQuest/godot-steering-toolkit/) like so with the shell:
-
-```fish
-python -m gdscript-docs-maker ~/Repositories/godot-steering-toolkit/src/reference.json
+# On Windows, if you installed Python 3.7+, you can use:
+python -m pip install gdscript_docs_maker
 ```
 
-## Writing your code reference ##
+## Getting Started ##
+
+In this section, we're showing you how to use the program to generate a code reference quickly.
+
+You need to:
+
+1. Write docstrings inside your GDScript code.
+2. Use one of the shell programs that ships with this add-on.
+
+### Writing your code reference ###
 
 Document properties and functions with comment blocks placed on the line before their definition:
 
@@ -48,3 +52,73 @@ func reset() -> void:
 ```
 
 Your docstrings can be as long as you want.
+
+### Generating the markdown files ###
+
+We wrote two shell scripts to automate the steps in generating a code reference: `./generate_reference.sh` for Linux or MacOS, and `./generate_reference.bat` for Windows.
+
+Use either of them to quickly generate your code reference:
+
+```bash
+generate_reference.sh
+
+Generate a code reference from GDScript.
+
+Usage:
+
+generate_reference.sh $project_directory (optional)$output_directory
+
+Arguments:
+
+$project_directory -- path to your Godot project directory.
+This directory or one of its subdirectories should contain a
+project.godot file.
+$output_directory -- directory path to output the documentation into.
+
+Flags:
+
+-h/--help -- Display this help message.
+```
+
+You need `godot` to be available on the system PATH.
+
+
+## The manual way ##
+
+If you want to generate the JSON and convert it manually, there are three steps involved:
+
+1. Copying the GDScript files `./godot-scripts/Collector.gd` and `./godot-scripts/ReferenceCollectorCLI.gd` or `./godot-scripts/ReferenceCollectorCLI.gd` to your Godot 3.2 project.
+2. Running the GDScript code with Godot, either from the editor (`ReferenceCollector.gd`) or by calling Godot from the command line (`ReferenceCollectorCLI.gd`).
+3. Running `gdscript_docs_maker` on the reference.json file that Godot generated in the previous step.
+
+<!-- TODO: turn into a note block on the website. -->
+**Note**: to parse and collect data from GDScript code, we rely on the GDScript language server that's new in Godot 3.2.
+
+### Converting JSON ###
+
+Call the `gdscript-docs-maker` package directly using the `python -m` option:
+
+```
+Usage: gdscript_docs_maker [-h] [-p PATH] [-v] [--dry-run] files [files ...]
+
+Merges or converts json data dumped by Godot's GDScript language server to
+create a code reference.
+
+positional arguments:
+  files                 A list of paths to JSON files.
+
+optional arguments:
+  -h, --help            Show this help message and exit.
+  -p PATH, --path PATH  Path to the output directory.
+  -v, --verbose         Set the verbosity level. For example, -vv sets the
+                        verbosity level to 2. Default: 0.
+  --dry-run             Run the script without creating
+                        files and folders. For debugging purposes.
+```
+
+The program takes a list of JSON files. For example, we generate the code reference of our AI framework [Godot Steering Toolkit](https://github.com/GDQuest/godot-steering-toolkit/) like so with the shell:
+
+```fish
+python -m gdscript-docs-maker ~/Repositories/godot-steering-toolkit/src/reference.json
+```
+
