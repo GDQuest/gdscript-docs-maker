@@ -68,7 +68,7 @@ if EXIST dist (
 echo Generating markdown files in %project_name%
 :: Runs the markdown creator.
 :: TODO: Skip the moving by having the python script output dist into the project folder
-python -m gdscript-docs-maker "%project_path%/reference.json"
+python -m gdscript_docs_maker "%project_path%/reference.json"
 
 IF NOT EXIST dist (
 	goto :PythonError

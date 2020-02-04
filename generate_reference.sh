@@ -45,4 +45,4 @@ rm -v $godot_project_dir/`basename $gdscript_2`
 # Generate markdown files
 echo Generating markdown files in $output_directory
 if ! test -d $output_directory; then mkdir -v $output_directory; fi
-python3 -m gdscript-docs-maker $godot_project_dir/reference.json
+python3 -m gdscript_docs_maker $godot_project_dir/reference.json
