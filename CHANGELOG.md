@@ -8,10 +8,12 @@ This document lists new features, improvements, changes, and bug fixes in every 
 
 ### Features ###
 
-- Output format for the static website engine [hugo](https://gohugo.io/) with toml front-matter. Use the `--format` option to select it.
+- New output format for the static website engine [hugo](https://gohugo.io/) with toml front-matter. Use the `--format hugo` option to select it.
+- New `--dry-run` command-line option to output debug information.
 
-Bug fixes
+### Bug fixes ###
 
+- Use code blocks for functions instead of inline code.
 
 ## GDScript Docs Maker 1.0 ##
 
