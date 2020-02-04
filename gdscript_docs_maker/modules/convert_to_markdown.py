@@ -99,7 +99,7 @@ def write_members(members: List[Member]) -> List[str]:
     def write_member(member: Member) -> List[str]:
         markdown: List[str] = []
         markdown.extend(make_heading(member.name, 3))
-        markdown.extend([make_code_inline(member.signature), ""])
+        markdown.extend([make_code_block(member.signature, "gdscript"), ""])
         if member.setter or member.setter:
             setget: List[str] = []
             if member.setter:
@@ -135,7 +135,7 @@ def write_functions(
         markdown: List[str] = []
         heading = function.name + " " + surround_with_html("(static)", "small")
         markdown.extend(make_heading(heading, 3))
-        markdown.append(make_code_inline(function.signature))
+        markdown.append(make_code_block(function.signature, "gdscript"))
         if function.description:
             markdown.extend(["", function.description])
         return markdown
