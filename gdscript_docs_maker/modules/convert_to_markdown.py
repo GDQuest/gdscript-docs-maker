@@ -8,11 +8,16 @@ from .gdscript_objects import (GDScriptClass, Member, Method, Signal,
 
 @dataclass
 class MarkdownDocument:
-    content: List[str]
     title: str
+    content: List[str]
 
     def get_filename(self):
         return self.title + ".md"
+
+    def __repr__(self):
+        return "MarkdownDocument(title={}, content={})".format(
+            self.title, "\\n".join(self.content)[:120] + "..."
+        )
 
 
 class MarkdownSection:
@@ -46,6 +51,7 @@ def convert_to_markdown(data: dict = {}) -> List[MarkdownDocument]:
 
 def as_markdown(gdscript: GDScriptClass) -> MarkdownDocument:
     return MarkdownDocument(
+        gdscript.name,
         [
             make_comment(
                 "Auto-generated from JSON by GDScript docs maker. "
@@ -70,7 +76,6 @@ def as_markdown(gdscript: GDScriptClass) -> MarkdownDocument:
                 write_functions(gdscript.methods, gdscript.static_functions),
             ).as_text(),
         ],
-        gdscript.name,
     )
 
 

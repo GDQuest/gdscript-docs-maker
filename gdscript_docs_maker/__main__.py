@@ -28,14 +28,18 @@ def main():
             )
 
             documents: List[MarkdownDocument] = convert_to_markdown(data)
-            if not os.path.exists(args.path):
-                LOGGER.info("Creating directory " + args.path)
-                os.mkdir(args.path)
+            if args.dry_run:
+                LOGGER.debug("Generated {} markdown documents.".format(len(documents)))
+                list(map(lambda doc: LOGGER.debug(doc), documents))
+            else:
+                if not os.path.exists(args.path):
+                    LOGGER.info("Creating directory " + args.path)
+                    os.mkdir(args.path)
 
-            LOGGER.info(
-                "Saving {} markdown files to {}".format(classes_count, args.path)
-            )
-            list(map(save, documents, repeat(args.path)))
+                LOGGER.info(
+                    "Saving {} markdown files to {}".format(classes_count, args.path)
+                )
+                list(map(save, documents, repeat(args.path)))
 
 
 def save(
