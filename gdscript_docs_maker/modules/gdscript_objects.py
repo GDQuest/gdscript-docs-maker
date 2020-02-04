@@ -1,6 +1,7 @@
 """Converts the json representation of GDScript classes as dictionaries into objects
 """
 from dataclasses import dataclass
+from enum import Enum
 from typing import List, Tuple
 
 BUILTIN_VIRTUAL_CALLBACKS = [
@@ -42,28 +43,21 @@ class Signal:
     arguments: List[str]
 
 
+class FunctionTypes(Enum):
+    METHOD = 1
+    VIRTUAL = 2
+    STATIC = 3
+
+
 @dataclass
-class Method:
+class Function:
     signature: str
+    kind: FunctionTypes
     name: str
     description: str
     return_type: str
     arguments: List[Argument]
     rpc_mode: int
-    is_virtual: bool
-    tags: List[str]
-
-    def summarize(self) -> List[str]:
-        return [self.return_type, self.signature]
-
-
-@dataclass
-class StaticFunction:
-    signature: str
-    name: str
-    description: str
-    return_type: str
-    arguments: List[Argument]
     tags: List[str]
 
     def summarize(self) -> List[str]:
@@ -94,9 +88,8 @@ class GDScriptClass:
     extends: str
     description: str
     path: str
-    methods: List[Method]
+    functions: List[Function]
     members: List[Member]
-    static_functions: List[StaticFunction]
     signals: List[Signal]
     tags: List[str]
 
@@ -108,9 +101,9 @@ class GDScriptClass:
             data["extends_class"],
             description.strip(" \n"),
             data["path"],
-            _get_methods(data["methods"]),
+            _get_functions(data["methods"])
+            + _get_functions(data["static_functions"], is_static=True),
             _get_members(data["members"]),
-            _get_static_functions(data["static_functions"]),
             _get_signals(data["signals"]),
             tags,
         )
@@ -145,8 +138,8 @@ def _get_signals(data: List[dict]) -> List[Signal]:
     return signals
 
 
-def _get_methods(data: List[dict]) -> List[Method]:
-    methods: List[Method] = []
+def _get_functions(data: List[dict], is_static: bool = False) -> List[Function]:
+    functions: List[Function] = []
     for entry in data:
         name: str = entry["name"]
         if name in BUILTIN_VIRTUAL_CALLBACKS:
@@ -155,24 +148,29 @@ def _get_methods(data: List[dict]) -> List[Method]:
             continue
 
         description, tags = get_tags(entry["description"])
-        is_virtual: bool = "virtual" in tags
-
+        is_virtual: bool = "virtual" in tags and not is_static
         is_private: bool = name.startswith("_") and not is_virtual
         if is_private:
             continue
 
-        method: Method = Method(
+        kind: FunctionTypes = FunctionTypes.METHOD
+        if is_static:
+            kind = FunctionTypes.STATIC
+        elif is_virtual:
+            kind = FunctionTypes.VIRTUAL
+
+        function: Function = Function(
             entry["signature"].replace("-> null", "-> void", 1),
+            kind,
             name,
             description.strip(" \n"),
             entry["return_type"].replace("null", "void", 1),
             _get_arguments(entry["arguments"]),
-            entry["rpc_mode"],
-            is_virtual,
+            entry["rpc_mode"] if "rpc_mode" in entry else 0,
             tags,
         )
-        methods.append(method)
-    return methods
+        functions.append(function)
+    return functions
 
 
 def _get_arguments(data: List[dict]) -> List[Argument]:
@@ -205,19 +203,3 @@ def _get_members(data: List[dict]) -> List[Member]:
         )
         members.append(member)
     return members
-
-
-def _get_static_functions(data: List[dict]) -> List[StaticFunction]:
-    static_functions: List[StaticFunction] = []
-    for entry in data:
-        description, tags = get_tags(entry["description"])
-        static_function: StaticFunction = StaticFunction(
-            entry["signature"],
-            entry["name"],
-            description.strip(" \n"),
-            entry["return_type"],
-            _get_arguments(entry["arguments"]),
-            tags,
-        )
-        static_functions.append(static_function)
-    return static_functions

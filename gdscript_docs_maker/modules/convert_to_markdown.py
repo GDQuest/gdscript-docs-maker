@@ -2,8 +2,8 @@
 from dataclasses import dataclass
 from typing import List
 
-from .gdscript_objects import (GDScriptClass, Member, Method, Signal,
-                               StaticFunction)
+from .gdscript_objects import (Function, FunctionTypes, GDScriptClass, Member,
+                               Signal)
 
 
 @dataclass
@@ -71,9 +71,7 @@ def as_markdown(gdscript: GDScriptClass) -> MarkdownDocument:
                 "Property Descriptions", 2, write_members(gdscript.members)
             ).as_text(),
             *MarkdownSection(
-                "Method Descriptions",
-                2,
-                write_functions(gdscript.methods, gdscript.static_functions),
+                "Method Descriptions", 2, write_functions(gdscript.functions),
             ).as_text(),
         ],
     )
@@ -89,8 +87,7 @@ def summarize_members(gdscript: GDScriptClass) -> List[str]:
 def summarize_methods(gdscript: GDScriptClass) -> List[str]:
     header: List[str] = make_table_header(["Type", "Name"])
     return header + [
-        make_table_row(method.summarize())
-        for method in gdscript.methods + gdscript.static_functions
+        make_table_row(function.summarize()) for function in gdscript.functions
     ]
 
 
@@ -122,23 +119,16 @@ def write_members(members: List[Member]) -> List[str]:
     return markdown
 
 
-def write_functions(
-    methods: List[Method], static_functions: List[StaticFunction]
-) -> List[str]:
-    def write_method(method: Method) -> List[str]:
+def write_functions(functions: List[Function]) -> List[str]:
+    def write_function(function: Function) -> List[str]:
         markdown: List[str] = []
-        heading: str = method.name
-        if method.is_virtual:
-            heading += " " + surround_with_html("(virtual)", "small")
-        markdown.extend(make_heading(heading, 3))
-        markdown.append(make_code_block(method.signature, "gdscript"))
-        if method.description:
-            markdown.extend(["", method.description])
-        return markdown
 
-    def write_static_function(function: StaticFunction) -> List[str]:
-        markdown: List[str] = []
-        heading = function.name + " " + surround_with_html("(static)", "small")
+        heading: str = function.name
+        if function.kind == FunctionTypes.VIRTUAL:
+            heading += " " + surround_with_html("(virtual)", "small")
+        if function.kind == FunctionTypes.STATIC:
+            heading += " " + surround_with_html("(static)", "small")
+
         markdown.extend(make_heading(heading, 3))
         markdown.append(make_code_block(function.signature, "gdscript"))
         if function.description:
@@ -146,10 +136,8 @@ def write_functions(
         return markdown
 
     markdown: List[str] = []
-    for function in static_functions:
-        markdown += write_static_function(function)
-    for method in methods:
-        markdown += write_method(method)
+    for function in functions:
+        markdown += write_function(function)
     return markdown
 
 
