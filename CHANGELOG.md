@@ -4,8 +4,6 @@ This document lists new features, improvements, changes, and bug fixes in every 
 
 ## GDScript Docs Maker 1.1 ##
 
-⚠ This release is a Work in Progress. Even if we're careful, new features can have bugs 🐛
-
 ### Features ###
 
 - New output format for the static website engine [hugo](https://gohugo.io/) with toml front-matter. Use the `--format hugo` option to select it.
