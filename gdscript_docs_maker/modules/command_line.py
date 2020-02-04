@@ -1,5 +1,20 @@
 import sys
 from argparse import ArgumentParser, Namespace
+from enum import Enum
+
+
+class OutputFormats(Enum):
+    MARDKOWN = "markdown"
+    HUGO = "hugo"
+
+
+def _output_format(args) -> OutputFormats:
+    """Validates the format argument"""
+    format: OutputFormats = OutputFormats.MARDKOWN
+    if args == "hugo":
+        format = OutputFormats.HUGO
+    return format
+
 
 
 def parse(args=sys.argv) -> Namespace:
@@ -11,7 +26,10 @@ def parse(args=sys.argv) -> Namespace:
         "files", type=str, nargs="+", default="", help="A list of paths to JSON files."
     )
     parser.add_argument(
-        "-p", "--path", type=str, default="dist", help="Path to the output directory"
+        "-p", "--path", type=str, default="dist", help="Path to the output directory."
+    )
+    parser.add_argument(
+        "-f", "--format", type=_output_format, default=OutputFormats.MARDKOWN, help="Output format for the markdown files. Either markdown (default) or hugo, for the hugo static website generator."
     )
     parser.add_argument(
         "-v",

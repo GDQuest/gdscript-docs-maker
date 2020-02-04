@@ -2,11 +2,20 @@
 
 This document lists new features, improvements, changes, and bug fixes in every GDScript docs maker release.
 
+## GDScript Docs Maker 1.1 ##
+
+⚠ This release is a Work in Progress. Even if we're careful, new features can have bugs 🐛
+
+### Features ###
+
+- Output format for the static website engine [hugo](https://gohugo.io/) with toml front-matter. Use the `--format` option to select it.
+
+Bug fixes
+
+
 ## GDScript Docs Maker 1.0 ##
 
 This is the initial release of the program. It can collect and generate a code reference from your Godot GDScript projects.
-
-⚠ This release is a Work in Progress. Even if we're careful, new features can have bugs 🐛
 
 ### Features ###
 

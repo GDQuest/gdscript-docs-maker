@@ -16,6 +16,7 @@ from .modules.convert_to_markdown import MarkdownDocument, convert_to_markdown
 def main():
     args: Namespace = command_line.parse()
     logging.basicConfig(level=LOG_LEVELS[min(args.verbose, len(LOG_LEVELS) - 1)])
+    LOGGER.debug("Output format: {}".format(args.format))
     json_files: List[str] = [f for f in args.files if f.lower().endswith(".json")]
     LOGGER.info("Processing JSON files: {}".format(json_files))
     for f in json_files:
@@ -27,7 +28,7 @@ def main():
                 "Processing {} classes in {}".format(classes_count, os.path.basename(f))
             )
 
-            documents: List[MarkdownDocument] = convert_to_markdown(data)
+            documents: List[MarkdownDocument] = convert_to_markdown(data, args.format)
             if args.dry_run:
                 LOGGER.debug("Generated {} markdown documents.".format(len(documents)))
                 list(map(lambda doc: LOGGER.debug(doc), documents))
