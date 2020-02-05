@@ -7,6 +7,7 @@ from .command_line import OutputFormats
 from .config import HUGO_FRONT_MATTER
 from .gdscript_objects import (Function, FunctionTypes, GDScriptClass, Member,
                                Signal)
+from . import hugo
 
 
 @dataclass
@@ -125,10 +126,11 @@ def write_signals(signals: List[Signal]) -> List[str]:
 
 
 def write_members(members: List[Member]) -> List[str]:
+
     def write_member(member: Member) -> List[str]:
         markdown: List[str] = []
         markdown.extend(make_heading(member.name, 3))
-        markdown.extend([make_code_block(member.signature, "gdscript"), ""])
+        markdown.extend([hugo.highlight_code(member.signature), ""])
         if member.setter or member.setter:
             setget: List[str] = []
             if member.setter:
@@ -157,7 +159,7 @@ def write_functions(functions: List[Function]) -> List[str]:
             heading += " " + surround_with_html("(static)", "small")
 
         markdown.extend(make_heading(heading, 3))
-        markdown.append(make_code_block(function.signature, "gdscript"))
+        markdown.append(hugo.highlight_code(function.signature))
         if function.description:
             markdown.extend(["", function.description])
         return markdown

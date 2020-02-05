@@ -2,6 +2,14 @@
 
 This document lists new features, improvements, changes, and bug fixes in every GDScript docs maker release.
 
+## GDScript Docs Maker 1.2 ##
+
+*In development*
+
+### Features ###
+
+- Add code highlighting to the `hugo` output format.
+
 ## GDScript Docs Maker 1.1 ##
 
 ### Features ###
