@@ -9,6 +9,9 @@ This document lists new features, improvements, changes, and bug fixes in every 
 ### Features ###
 
 - Add code highlighting to the `hugo` output format.
+- Add `--date` and `--author` command line flags for the hugo front matter output.
+- Add support for the `abstract` tag, for abstract base classes.
+- Add GDScript code highlighting for the hugo export format.
 
 ## GDScript Docs Maker 1.1 ##
 
