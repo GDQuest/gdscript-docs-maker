@@ -4,7 +4,7 @@ Docs Maker is a set of tools to convert documentation you write inside your code
 
 If you make plugins or a framework for Godot, GDScript Docs Maker will help you save a lot of time documenting your code.
 
-It creates documents following Godot's built-in class reference.
+It creates documents following Godot's built-in class reference. You can see an example with our [Godot Steering Toolkit documentation](https://www.gdquest.com/docs/godot-steering-toolkit/reference/)
 
 <!-- TODO: turn into a note block on the website. -->
 **Note**: This program requires Godot 3.2+ and Python 3.7+ to work.
@@ -82,6 +82,22 @@ Flags:
 
 You need `godot` to be available on the system PATH.
 
+## Hugo output ##
+
+You can output markdown files for [hugo](https://gohugo.io/), the static website engine. 
+
+To do so, call GDScript docs maker with the `--format hugo` option. You can use two extra flags with this:
+
+```bash
+--date YYYY-MM-DD, the date in iso format, if you want the documents to have a date other than today. Default: datetime.date.today()
+--author author_id, the id of the author on your hugo website, to assign an the author for the documents. Default: ""
+```
+
+Here's how I generate the Godot Steering Toolkit's documentation. This command outputs the class reference straight into the website:
+
+```bash
+python3 -m gdscript_docs_maker $HOME/Repositories/godot-steering-toolkit/project/reference.json --format hugo --author razoric --path $HOME/Repositories/website/content/docs/godot-steering-toolkit/reference/classes/ 
+```
 
 ## The manual way ##
 
