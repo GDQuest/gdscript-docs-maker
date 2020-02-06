@@ -1,13 +1,13 @@
 """Parses the JSON data from Godot as a dictionary and outputs markdown documents"""
-import datetime
+from argparse import Namespace
 from dataclasses import dataclass
 from typing import List
 
+from . import hugo
 from .command_line import OutputFormats
-from .config import HUGO_FRONT_MATTER
 from .gdscript_objects import (Function, FunctionTypes, GDScriptClass, Member,
                                Signal)
-from . import hugo
+from .hugo import HugoFrontMatter
 
 
 @dataclass
@@ -43,40 +43,31 @@ class MarkdownSection:
         return self.title + self.content if not self.is_empty() else []
 
 
-def convert_to_markdown(
-    data: dict, output_format: OutputFormats
-) -> List[MarkdownDocument]:
+def convert_to_markdown(data: dict, arguments: Namespace,) -> List[MarkdownDocument]:
     """Takes a dictionary that contains all the GDScript classes to convert to markdown
     and returns a list of markdown documents.
     """
     markdown: List[MarkdownDocument] = []
     for entry in data:
-        markdown.append(as_markdown(GDScriptClass.from_dict(entry), output_format))
+        markdown.append(as_markdown(GDScriptClass.from_dict(entry), arguments))
     return markdown
 
 
-def as_markdown(
-    gdscript: GDScriptClass, output_format: OutputFormats
-) -> MarkdownDocument:
+def as_markdown(gdscript: GDScriptClass, arguments: Namespace) -> MarkdownDocument:
+    """Converts the data for a GDScript class to a markdown document, using the command line
+    options."""
+
     content: List[str] = []
+
+    output_format: OutputFormats = arguments.format
 
     name: str = gdscript.name
     if "abstract" in gdscript.tags:
         name += surround_with_html("(abstract)", "small")
 
     if output_format == OutputFormats.HUGO:
-        strings: List[str] = [
-            gdscript.name,
-            gdscript.description.replace("\n", "\\n"),
-            "razoric",
-            "{:%Y-%m-%d}".format(datetime.date.today()),
-        ]
-        format_strings: List[str] = list(map(quote_string, strings))
-        content += [
-            # TODO: let the user config the author and date
-            HUGO_FRONT_MATTER["toml"].format(*format_strings)
-            + "\n"
-        ]
+        front_matter: HugoFrontMatter = HugoFrontMatter.from_data(gdscript, arguments)
+        content += front_matter.as_string_list()
 
     content += [
         make_comment(
@@ -191,10 +182,6 @@ def escape_markdown(text: str) -> str:
     for character in characters:
         text = text.replace(character, "\\" + character)
     return text
-
-
-def quote_string(text: str) -> str:
-    return '"' + text.replace('"', '\\"') + '"'
 
 
 def make_bold(text: str) -> str:

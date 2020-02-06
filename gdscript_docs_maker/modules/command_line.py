@@ -1,6 +1,9 @@
+import datetime
 import sys
 from argparse import ArgumentParser, Namespace
 from enum import Enum
+
+from .hugo import HugoFrontMatter
 
 
 class OutputFormats(Enum):
@@ -8,13 +11,22 @@ class OutputFormats(Enum):
     HUGO = "hugo"
 
 
-def _output_format(args) -> OutputFormats:
+def _validate_output_format(args) -> OutputFormats:
     """Validates the format argument"""
     format: OutputFormats = OutputFormats.MARDKOWN
     if args == "hugo":
         format = OutputFormats.HUGO
     return format
 
+
+def _set_date(args) -> datetime.date:
+    """Validates the date argument, parsing the date from the ISO format"""
+    date: datetime.date
+    try:
+        date = datetime.date.fromisoformat(args)
+    except ValueError:
+        date = datetime.date.today()
+    return date
 
 
 def parse(args=sys.argv) -> Namespace:
@@ -29,7 +41,25 @@ def parse(args=sys.argv) -> Namespace:
         "-p", "--path", type=str, default="dist", help="Path to the output directory."
     )
     parser.add_argument(
-        "-f", "--format", type=_output_format, default=OutputFormats.MARDKOWN, help="Output format for the markdown files. Either markdown (default) or hugo, for the hugo static website generator."
+        "-f",
+        "--format",
+        type=_validate_output_format,
+        default=OutputFormats.MARDKOWN,
+        help="Output format for the markdown files. Either markdown (default) or hugo, for the hugo static website generator.",
+    )
+    parser.add_argument(
+        "-d",
+        "--date",
+        type=_set_date,
+        default=datetime.date.today(),
+        help="Date in ISO format: YYYY-MM-DD. Example: 2020-05-12 corresponds to March 12, 2020. Only used for the hugo export format.",
+    )
+    parser.add_argument(
+        "-a",
+        "--author",
+        type=str,
+        default="",
+        help="ID of the author for hugo's front-matter. Only used for the hugo export format.",
     )
     parser.add_argument(
         "-v",
