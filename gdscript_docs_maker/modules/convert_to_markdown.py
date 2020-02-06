@@ -59,6 +59,11 @@ def as_markdown(
     gdscript: GDScriptClass, output_format: OutputFormats
 ) -> MarkdownDocument:
     content: List[str] = []
+
+    name: str = gdscript.name
+    if "abstract" in gdscript.tags:
+        name += surround_with_html("(abstract)", "small")
+
     if output_format == OutputFormats.HUGO:
         strings: List[str] = [
             gdscript.name,
@@ -80,8 +85,9 @@ def as_markdown(
         )
         + "\n"
     ]
+
     if output_format == OutputFormats.MARDKOWN:
-        content += [*make_heading(gdscript.name, 1)]
+        content += [*make_heading(name, 1)]
     content += [
         make_bold("Extends:") + " " + gdscript.extends_as_string(),
         *MarkdownSection("Description", 2, [gdscript.description]).as_text(),
@@ -126,7 +132,6 @@ def write_signals(signals: List[Signal]) -> List[str]:
 
 
 def write_members(members: List[Member]) -> List[str]:
-
     def write_member(member: Member) -> List[str]:
         markdown: List[str] = []
         markdown.extend(make_heading(member.name, 3))
