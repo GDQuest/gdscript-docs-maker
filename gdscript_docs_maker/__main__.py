@@ -49,7 +49,7 @@ def save(
     path: str = os.path.join(dirpath, document.get_filename())
     with open(path, "w") as file_out:
         LOGGER.debug("Saving markdown file " + path)
-        file_out.writelines("\n".join(document.content))
+        file_out.write(document.as_string())
 
 
 if __name__ == "__main__":

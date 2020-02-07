@@ -1,4 +1,5 @@
 """Parses the JSON data from Godot as a dictionary and outputs markdown documents"""
+import re
 from argparse import Namespace
 from dataclasses import dataclass
 from typing import List
@@ -17,6 +18,11 @@ class MarkdownDocument:
 
     def get_filename(self):
         return self.title + ".md"
+
+    def as_string(self) -> str:
+        """Removes duplicate empty lines from the document and returns it as a string."""
+        text: str = "\n".join(self.content)
+        return re.sub(r"\n\n+", "\n\n", text)
 
     def __repr__(self):
         return "MarkdownDocument(title={}, content={})".format(

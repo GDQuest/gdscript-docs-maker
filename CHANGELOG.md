@@ -14,6 +14,10 @@ This document lists new features, improvements, changes, and bug fixes in every 
 - Add GDScript code highlighting for the hugo export format.
 - Add support for enums.
 
+### Improvements ###
+
+- The documents now only have 1 empty line betweens paragraphs, headings, etc. instead of 2 to 4.
+
 ## GDScript Docs Maker 1.1 ##
 
 ### Features ###
