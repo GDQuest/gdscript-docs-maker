@@ -5,8 +5,8 @@ from typing import List
 
 from . import hugo
 from .command_line import OutputFormats
-from .gdscript_objects import (Function, FunctionTypes, GDScriptClass, Member,
-                               Signal)
+from .gdscript_objects import (Enumeration, Function, FunctionTypes,
+                               GDScriptClass, Member, Signal)
 from .hugo import HugoFrontMatter
 
 
@@ -63,7 +63,7 @@ def as_markdown(gdscript: GDScriptClass, arguments: Namespace) -> MarkdownDocume
 
     name: str = gdscript.name
     if "abstract" in gdscript.tags:
-        name +=  " " + surround_with_html("(abstract)", "small")
+        name += " " + surround_with_html("(abstract)", "small")
 
     if output_format == OutputFormats.HUGO:
         front_matter: HugoFrontMatter = HugoFrontMatter.from_data(gdscript, arguments)
@@ -86,8 +86,7 @@ def as_markdown(gdscript: GDScriptClass, arguments: Namespace) -> MarkdownDocume
         *MarkdownSection("Properties", 2, summarize_members(gdscript)).as_text(),
         *MarkdownSection("Methods", 2, summarize_methods(gdscript)).as_text(),
         *MarkdownSection("Signals", 2, write_signals(gdscript.signals)).as_text(),
-        # TODO
-        *MarkdownSection("Enumerations", 2, []).as_text(),
+        *MarkdownSection("Enumerations", 2, write_enums(gdscript.enums)).as_text(),
         # Full reference for the properties and methods.
         *MarkdownSection(
             "Property Descriptions", 2, write_members(gdscript.members)
@@ -120,6 +119,20 @@ def write_signals(signals: List[Signal]) -> List[str]:
     if not signals:
         return []
     return wrap_in_newlines(["- {}".format(s.signature) for s in signals])
+
+
+def write_enums(enums: List[Enumeration]) -> List[str]:
+    def write_enum(enum: Enumeration) -> List[str]:
+        markdown: List[str] = []
+        markdown.extend(make_heading(enum.name, 3))
+        markdown.extend([hugo.highlight_code(enum.signature), ""])
+        markdown.append(enum.description)
+        return markdown
+
+    markdown: List[str] = []
+    for enum in enums:
+        markdown += write_enum(enum)
+    return markdown
 
 
 def write_members(members: List[Member]) -> List[str]:

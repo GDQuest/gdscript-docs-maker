@@ -74,7 +74,7 @@ class Enumeration:
     values: dict
 
     @classmethod
-    def from_dict(cls, data: dict) -> Enumeration:
+    def from_dict(cls, data: dict):
         return Enumeration(
             data["signature"], data["name"], data["description"], data["value"]
         )
