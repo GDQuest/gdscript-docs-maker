@@ -65,6 +65,22 @@ class Function:
 
 
 @dataclass
+class Enumeration:
+    """Represents an enum with its constants"""
+
+    signature: str
+    name: str
+    description: str
+    values: dict
+
+    @classmethod
+    def from_dict(cls, data: dict) -> Enumeration:
+        return Enumeration(
+            data["signature"], data["name"], data["description"], data["value"]
+        )
+
+
+@dataclass
 class Member:
     """Represents a property or member variable"""
 
@@ -91,6 +107,7 @@ class GDScriptClass:
     functions: List[Function]
     members: List[Member]
     signals: List[Signal]
+    enums: List[Enumeration]
     tags: List[str]
 
     @classmethod
@@ -105,6 +122,11 @@ class GDScriptClass:
             + _get_functions(data["static_functions"], is_static=True),
             _get_members(data["members"]),
             _get_signals(data["signals"]),
+            [
+                Enumeration.from_dict(entry)
+                for entry in data["constants"]
+                if entry["data_type"] == "Dictionary"
+            ],
             tags,
         )
 
