@@ -92,13 +92,17 @@ def as_markdown(gdscript: GDScriptClass, arguments: Namespace) -> MarkdownDocume
         *MarkdownSection("Properties", 2, summarize_members(gdscript)).as_text(),
         *MarkdownSection("Methods", 2, summarize_methods(gdscript)).as_text(),
         *MarkdownSection("Signals", 2, write_signals(gdscript.signals)).as_text(),
-        *MarkdownSection("Enumerations", 2, write_enums(gdscript.enums)).as_text(),
+        *MarkdownSection(
+            "Enumerations", 2, write_enums(gdscript.enums, output_format)
+        ).as_text(),
         # Full reference for the properties and methods.
         *MarkdownSection(
-            "Property Descriptions", 2, write_members(gdscript.members)
+            "Property Descriptions", 2, write_members(gdscript.members, output_format)
         ).as_text(),
         *MarkdownSection(
-            "Method Descriptions", 2, write_functions(gdscript.functions),
+            "Method Descriptions",
+            2,
+            write_functions(gdscript.functions, output_format),
         ).as_text(),
     ]
     doc: MarkdownDocument = MarkdownDocument(
@@ -127,11 +131,14 @@ def write_signals(signals: List[Signal]) -> List[str]:
     return wrap_in_newlines(["- {}".format(s.signature) for s in signals])
 
 
-def write_enums(enums: List[Enumeration]) -> List[str]:
+def write_enums(enums: List[Enumeration], output_format: OutputFormats) -> List[str]:
     def write_enum(enum: Enumeration) -> List[str]:
         markdown: List[str] = []
         markdown.extend(make_heading(enum.name, 3))
-        markdown.extend([hugo.highlight_code(enum.signature), ""])
+        if output_format == OutputFormats.HUGO:
+            markdown.extend([hugo.highlight_code(enum.signature), ""])
+        else:
+            markdown.extend([make_code_block(enum.signature), ""])
         markdown.append(enum.description)
         return markdown
 
@@ -141,11 +148,14 @@ def write_enums(enums: List[Enumeration]) -> List[str]:
     return markdown
 
 
-def write_members(members: List[Member]) -> List[str]:
+def write_members(members: List[Member], output_format: OutputFormats) -> List[str]:
     def write_member(member: Member) -> List[str]:
         markdown: List[str] = []
         markdown.extend(make_heading(member.name, 3))
-        markdown.extend([hugo.highlight_code(member.signature), ""])
+        if output_format == OutputFormats.HUGO:
+            markdown.extend([hugo.highlight_code(member.signature), ""])
+        else:
+            markdown.extend([make_code_block(member.signature), ""])
         if member.setter or member.setter:
             setget: List[str] = []
             if member.setter:
@@ -163,7 +173,9 @@ def write_members(members: List[Member]) -> List[str]:
     return markdown
 
 
-def write_functions(functions: List[Function]) -> List[str]:
+def write_functions(
+    functions: List[Function], output_format: OutputFormats
+) -> List[str]:
     def write_function(function: Function) -> List[str]:
         markdown: List[str] = []
 
@@ -174,7 +186,10 @@ def write_functions(functions: List[Function]) -> List[str]:
             heading += " " + surround_with_html("(static)", "small")
 
         markdown.extend(make_heading(heading, 3))
-        markdown.append(hugo.highlight_code(function.signature))
+        if output_format == OutputFormats.HUGO:
+            markdown.extend([hugo.highlight_code(function.signature), ""])
+        else:
+            markdown.extend([make_code_block(function.signature), ""])
         if function.description:
             markdown.extend(["", function.description])
         return markdown
@@ -218,7 +233,7 @@ def make_code_inline(text: str) -> str:
     return "`" + text + "`"
 
 
-def make_code_block(text: str, language: str = "") -> str:
+def make_code_block(text: str, language: str = "gdscript") -> str:
     """Returns the text surrounded by `"""
     return "```{}\n{}\n```".format(language, text)
 

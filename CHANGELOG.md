@@ -2,6 +2,12 @@
 
 This document lists new features, improvements, changes, and bug fixes in every GDScript docs maker release.
 
+## GDScript Docs Maker 1.2.1 ##
+
+### Bug fixes ###
+
+- The tool now outputs regular markdown code blocks instead of hugo shortcodes by default.
+
 ## GDScript Docs Maker 1.2 ##
 
 *In development*

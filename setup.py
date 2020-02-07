@@ -8,7 +8,7 @@ def get_readme() -> str:
 
 setup(
     name="gdscript_docs_maker",
-    version="1.2.0",
+    version="1.2.1",
     description="Create documentation and class references from your Godot GDScript code.",
     long_description=get_readme(),
     long_description_content_type="text/markdown",
