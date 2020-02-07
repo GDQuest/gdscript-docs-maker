@@ -1,12 +1,27 @@
 # GDScript Docs Maker #
 
+![Project banner](./assets/gdscript-docs-maker-banner.svg)
+
 Docs Maker is a set of tools to convert documentation you write inside your code to an online or offline code reference in the markdown format.
 
 If you make plugins or a framework for Godot, GDScript Docs Maker will help you save a lot of time documenting your code.
 
 It creates documents following Godot's built-in class reference. You can see an example with our [Godot Steering Toolkit documentation](https://www.gdquest.com/docs/godot-steering-toolkit/reference/)
 
-<!-- TODO: turn into a note block on the website. -->
+
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
+**Table of Contents**
+
+- [Installing](#installing)
+- [Getting Started](#getting-started)
+    - [Writing your code reference](#writing-your-code-reference)
+    - [Generating the markdown files](#generating-the-markdown-files)
+- [Hugo output](#hugo-output)
+- [The manual way](#the-manual-way)
+    - [Converting JSON](#converting-json)
+
+<!-- markdown-toc end -->
+
 **Note**: This program requires Godot 3.2+ and Python 3.7+ to work.
 
 ## Installing ##
