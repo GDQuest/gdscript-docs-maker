@@ -33,7 +33,7 @@ class HugoFrontMatter:
     def from_data(cls, gdscript: GDScriptClass, arguments: Namespace):
         name: str = gdscript.name
         if "abstract" in gdscript.tags:
-            name += "(abstract)"
+            name += " (abstract)"
         return HugoFrontMatter(
             name,
             gdscript.description.replace("\n", "\\n"),

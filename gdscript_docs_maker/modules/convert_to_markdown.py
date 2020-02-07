@@ -63,7 +63,7 @@ def as_markdown(gdscript: GDScriptClass, arguments: Namespace) -> MarkdownDocume
 
     name: str = gdscript.name
     if "abstract" in gdscript.tags:
-        name += surround_with_html("(abstract)", "small")
+        name +=  " " + surround_with_html("(abstract)", "small")
 
     if output_format == OutputFormats.HUGO:
         front_matter: HugoFrontMatter = HugoFrontMatter.from_data(gdscript, arguments)
