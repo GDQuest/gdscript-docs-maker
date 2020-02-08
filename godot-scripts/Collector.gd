@@ -66,13 +66,16 @@ func save_text(path := "", content := "") -> void:
 
 
 # Parses a list of GDScript files and returns a list of dictionaries with the
-# code reference data.
-func get_reference(files := PoolStringArray()) -> Array:
+# code reference data. If `refresh_cache` is true, will refresh Godot's cache
+# and get fresh symbols.
+func get_reference(files := PoolStringArray(), refresh_cache := false) -> Array:
 	var reference := []
 	var workspace = Engine.get_singleton('GDScriptLanguageProtocol').get_workspace()
 	for file in files:
 		if not file.ends_with(".gd"):
 			continue
+		if refresh_cache:
+			workspace.parse_local_script(file)
 		var symbols: Dictionary = workspace.generate_script_api(file)
 		reference.append(symbols)
 	return reference
