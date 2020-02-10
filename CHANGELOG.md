@@ -4,10 +4,15 @@ This document lists new features, improvements, changes, and bug fixes in every 
 
 ## GDScript Docs Maker 1.2.1 ##
 
+### Changes ###
+
+- Move the pip package's configuration to `setup.cfg`.
+
 ### Bug fixes ###
 
 - The tool now outputs regular markdown code blocks instead of hugo shortcodes by default.
 - The `Collector.gd` script you can run from Godot's editor now rebuilds the language server cache so you don't need to restart Godot to rebuild the JSON class data.
+
 
 ## GDScript Docs Maker 1.2 ##
 
