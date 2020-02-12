@@ -12,6 +12,8 @@ This document lists new features, improvements, changes, and bug fixes in every 
 
 - The tool now outputs regular markdown code blocks instead of hugo shortcodes by default.
 - The `Collector.gd` script you can run from Godot's editor now rebuilds the language server cache so you don't need to restart Godot to rebuild the JSON class data.
+- Fixed an error in markdown conversion when the Godot Language Server generates empty classes in the generated JSON file.
+    - If a class doesn't have a name, docs maker will now skip it.
 
 
 ## GDScript Docs Maker 1.2 ##

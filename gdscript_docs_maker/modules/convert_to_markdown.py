@@ -55,6 +55,8 @@ def convert_to_markdown(data: dict, arguments: Namespace,) -> List[MarkdownDocum
     """
     markdown: List[MarkdownDocument] = []
     for entry in data:
+        if not "name" in data:
+            continue
         markdown.append(as_markdown(GDScriptClass.from_dict(entry), arguments))
     return markdown
 
