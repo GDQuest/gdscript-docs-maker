@@ -1,4 +1,5 @@
-"""Parses the JSON data from Godot as a dictionary and outputs markdown documents"""
+"""Parses the JSON data from Godot as a dictionary and outputs markdown
+documents"""
 import re
 from argparse import Namespace
 from dataclasses import dataclass
@@ -6,8 +7,14 @@ from typing import List
 
 from . import hugo
 from .command_line import OutputFormats
-from .gdscript_objects import (Enumeration, Function, FunctionTypes,
-                               GDScriptClass, Member, Signal)
+from .gdscript_objects import (
+    Enumeration,
+    Function,
+    FunctionTypes,
+    GDScriptClass,
+    Member,
+    Signal,
+)
 from .hugo import HugoFrontMatter
 
 
@@ -55,7 +62,7 @@ def convert_to_markdown(data: dict, arguments: Namespace,) -> List[MarkdownDocum
     """
     markdown: List[MarkdownDocument] = []
     for entry in data:
-        if not "name" in data:
+        if "name" not in data:
             continue
         markdown.append(as_markdown(GDScriptClass.from_dict(entry), arguments))
     return markdown
