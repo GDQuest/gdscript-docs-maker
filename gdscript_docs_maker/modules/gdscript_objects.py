@@ -109,10 +109,11 @@ class GDScriptClass:
     signals: List[Signal]
     enums: List[Enumeration]
     tags: List[str]
+    category: str
 
     @classmethod
     def from_dict(cls, data: dict):
-        description, tags = get_tags(data["description"])
+        description, tags, category = get_metadata(data["description"])
         return GDScriptClass(
             data["name"],
             data["extends_class"],
@@ -128,26 +129,35 @@ class GDScriptClass:
                 if entry["data_type"] == "Dictionary"
             ],
             tags,
+            category,
         )
 
     def extends_as_string(self) -> str:
         return " < ".join(self.extends)
 
 
-def get_tags(description: str) -> Tuple[str, List[str]]:
-    """Collect the tags from the description as a list of strings.
-    Returns the description without the tags and the tags as a list of strings."""
+def get_metadata(description: str) -> Tuple[str, List[str], str]:
+    """Returns a tuple of (description, tags, category) from a docstring.
+
+metadata should be of the form key: value, e.g. category: Category Name"""
     tags: List[str] = []
+    category: str = ""
+
     lines: List[str] = description.split("\n")
-    description_trimmed = []
+    description_trimmed: List[str] = []
     for index, line in enumerate(lines):
-        tag_line: str = line.strip().lower()
-        if not tag_line.startswith("tags:"):
-            description_trimmed.append(line)
+        line_stripped: str = line.strip().lower()
+
+        if line_stripped.startswith("tags:"):
+            tags = line[line.find(":") + 1 :].split(",")
+            tags = list(map(lambda t: t.strip(), tags))
             continue
-        tags = tag_line.replace("tags:", "", 1).split(",")
-        tags = list(map(lambda t: t.strip(), tags))
-    return "\n".join(description_trimmed), tags
+        elif line_stripped.startswith("category:"):
+            category = line[line.find(":") + 1 :].strip()
+            continue
+        else:
+            description_trimmed.append(line)
+    return "\n".join(description_trimmed), tags, category
 
 
 def _get_signals(data: List[dict]) -> List[Signal]:
@@ -169,7 +179,7 @@ def _get_functions(data: List[dict], is_static: bool = False) -> List[Function]:
         if name == TYPE_CONSTRUCTOR and not entry["arguments"]:
             continue
 
-        description, tags = get_tags(entry["description"])
+        description, tags, _ = get_metadata(entry["description"])
         is_virtual: bool = "virtual" in tags and not is_static
         is_private: bool = name.startswith("_") and not is_virtual
         if is_private:
@@ -211,7 +221,7 @@ def _get_members(data: List[dict]) -> List[Member]:
         # Skip private members
         if entry["name"].startswith("_"):
             continue
-        description, tags = get_tags(entry["description"])
+        description, tags, _ = get_metadata(entry["description"])
         member: Member = Member(
             entry["signature"],
             entry["name"],
