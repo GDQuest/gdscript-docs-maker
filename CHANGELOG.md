@@ -12,6 +12,9 @@ This document lists new features, improvements, changes, and bug fixes in every 
       `application/config/version`. It must be with the form "1.0.0". Future or
       more recent Godot versions should have this defined by default. Upon
       exporting your game, Godot should also use this version number.
+- Add support for the class `category` metadata: this allows you to group
+  classes by categories. Add a line with `# category: My Category` in your
+  class's docstring to register a category for it.
 
 ### Changes ###
 

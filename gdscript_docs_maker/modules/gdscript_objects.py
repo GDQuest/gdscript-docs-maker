@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Tuple
+import itertools
+import operator
 
 BUILTIN_VIRTUAL_CALLBACKS = [
     "_process",
@@ -134,6 +136,37 @@ class GDScriptClass:
 
     def extends_as_string(self) -> str:
         return " < ".join(self.extends)
+
+
+class GDScriptClasses(list):
+    """Container for a list of GDScriptClass objects
+
+    Provides methods for filtering and grouping GDScript classes"""
+
+    def __init__(self, *args):
+        super(GDScriptClasses, self).__init__(args[0])
+
+    def _get_grouped_by(self, attribute: str) -> List[List[GDScriptClass]]:
+        if not self or attribute not in self[0].__dict__:
+            return []
+
+        groups = []
+        get_attribute = operator.attrgetter(attribute)
+        data = sorted(self, get_attribute)
+        for key, group in itertools.groupby(data, get_attribute):
+            groups.append(list(group))
+        return groups
+
+    def get_grouped_by_category(self) -> List[List[GDScriptClass]]:
+        """Returns a list of lists of GDScriptClass objects, grouped by their `category`
+attribute"""
+        return self._get_grouped_by("category")
+
+    @classmethod
+    def from_dict_list(cls, data: List[dict]):
+        return GDScriptClasses(
+            [GDScriptClass.from_dict(entry) for entry in data if "name" in entry]
+        )
 
 
 def get_metadata(description: str) -> Tuple[str, List[str], str]:

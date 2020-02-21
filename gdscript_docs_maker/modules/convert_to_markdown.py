@@ -12,6 +12,7 @@ from .gdscript_objects import (
     Function,
     FunctionTypes,
     GDScriptClass,
+    GDScriptClasses,
     Member,
     Signal,
 )
@@ -68,17 +69,15 @@ class MarkdownSection:
 
 
 def convert_to_markdown(
-    gdscript_classes: List[dict], arguments: Namespace,
+    classes: GDScriptClasses, arguments: Namespace,
 ) -> List[MarkdownDocument]:
     """Takes a list of dictionaries that each represent one GDScript class to
     convert to markdown and returns a list of markdown documents.
 
     """
     markdown: List[MarkdownDocument] = []
-    for entry in gdscript_classes:
-        if "name" not in entry:
-            continue
-        markdown.append(as_markdown(GDScriptClass.from_dict(entry), arguments))
+    for entry in classes:
+        markdown.append(as_markdown(entry, arguments))
     return markdown
 
 

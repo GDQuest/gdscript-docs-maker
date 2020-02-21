@@ -15,6 +15,7 @@ from .modules.convert_to_markdown import (
     MarkdownDocument,
     convert_to_markdown,
 )
+from .modules.gdscript_objects import GDScriptClasses
 
 
 def main():
@@ -27,8 +28,8 @@ def main():
         with open(f, "r") as json_file:
             data: list = json.loads(json_file.read())
             project_info: ProjectInfo = ProjectInfo.from_dict(data)
-            gdscript_classes: List[dict] = data["classes"]
-            classes_count: int = len(gdscript_classes)
+            classes: GDScriptClasses = GDScriptClasses.from_dict_list(data["classes"])
+            classes_count: int = len(classes)
 
             LOGGER.info(
                 "Project {}, version {}".format(project_info.name, project_info.version)
@@ -37,9 +38,7 @@ def main():
                 "Processing {} classes in {}".format(classes_count, os.path.basename(f))
             )
 
-            documents: List[MarkdownDocument] = convert_to_markdown(
-                gdscript_classes, args
-            )
+            documents: List[MarkdownDocument] = convert_to_markdown(classes, args)
             if args.dry_run:
                 LOGGER.debug("Generated {} markdown documents.".format(len(documents)))
                 list(map(lambda doc: LOGGER.debug(doc), documents))
