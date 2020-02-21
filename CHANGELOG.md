@@ -2,6 +2,17 @@
 
 This document lists new features, improvements, changes, and bug fixes in every GDScript docs maker release.
 
+## GDScript Docs Maker 1.3.0 ##
+
+### Features ###
+
+- Store key project information: name, description, and human-readable version string.
+    - We get them from the Application Settings in your Godot project.
+    - For the project version, in 3.2.0, you need to add it yourself as
+      `application/config/version`. It must be with the form "1.0.0". Future or
+      more recent Godot versions should have this defined by default. Upon
+      exporting your game, Godot should also use this version number.
+
 ## GDScript Docs Maker 1.2.1 ##
 
 ### Changes ###

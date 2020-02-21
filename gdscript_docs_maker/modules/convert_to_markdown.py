@@ -19,6 +19,17 @@ from .hugo import HugoFrontMatter
 
 
 @dataclass
+class ProjectInfo:
+    name: str
+    descrption: str
+    version: str
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        return ProjectInfo(data["name"], data["description"], data["version"])
+
+
+@dataclass
 class MarkdownDocument:
     title: str
     content: List[str]
@@ -56,13 +67,16 @@ class MarkdownSection:
         return self.title + self.content if not self.is_empty() else []
 
 
-def convert_to_markdown(data: dict, arguments: Namespace,) -> List[MarkdownDocument]:
-    """Takes a dictionary that contains all the GDScript classes to convert to markdown
-    and returns a list of markdown documents.
+def convert_to_markdown(
+    gdscript_classes: List[dict], arguments: Namespace,
+) -> List[MarkdownDocument]:
+    """Takes a list of dictionaries that each represent one GDScript class to
+    convert to markdown and returns a list of markdown documents.
+
     """
     markdown: List[MarkdownDocument] = []
-    for entry in data:
-        if "name" not in data:
+    for entry in gdscript_classes:
+        if "name" not in entry:
             continue
         markdown.append(as_markdown(GDScriptClass.from_dict(entry), arguments))
     return markdown

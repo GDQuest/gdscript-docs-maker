@@ -10,7 +10,11 @@ from typing import List
 
 from .modules import command_line
 from .modules.config import LOG_LEVELS, LOGGER
-from .modules.convert_to_markdown import MarkdownDocument, convert_to_markdown
+from .modules.convert_to_markdown import (
+    ProjectInfo,
+    MarkdownDocument,
+    convert_to_markdown,
+)
 
 
 def main():
@@ -21,14 +25,21 @@ def main():
     LOGGER.info("Processing JSON files: {}".format(json_files))
     for f in json_files:
         with open(f, "r") as json_file:
-            data: dict = json.loads(json_file.read())
+            data: list = json.loads(json_file.read())
+            project_info: ProjectInfo = ProjectInfo.from_dict(data)
+            gdscript_classes: List[dict] = data["classes"]
+            classes_count: int = len(gdscript_classes)
 
-            classes_count: int = len(data)
+            LOGGER.info(
+                "Project {}, version {}".format(project_info.name, project_info.version)
+            )
             LOGGER.info(
                 "Processing {} classes in {}".format(classes_count, os.path.basename(f))
             )
 
-            documents: List[MarkdownDocument] = convert_to_markdown(data, args)
+            documents: List[MarkdownDocument] = convert_to_markdown(
+                gdscript_classes, args
+            )
             if args.dry_run:
                 LOGGER.debug("Generated {} markdown documents.".format(len(documents)))
                 list(map(lambda doc: LOGGER.debug(doc), documents))
@@ -38,7 +49,7 @@ def main():
                     os.mkdir(args.path)
 
                 LOGGER.info(
-                    "Saving {} markdown files to {}".format(classes_count, args.path)
+                    "Saving {} markdown files to {}".format(len(documents), args.path)
                 )
                 list(map(save, documents, repeat(args.path)))
 

@@ -14,9 +14,11 @@ extends SceneTree
 #   files, ["*.gd"]
 # - is_recursive: if `true`, walks over subdirectories recursively, returning all
 #   files in the tree.
-func find_files(dirpath := "", patterns := PoolStringArray(), is_recursive := false, do_skip_hidden := true) -> PoolStringArray:
-	var file_paths: = PoolStringArray()
-	var directory: = Directory.new()
+func find_files(
+	dirpath := "", patterns := PoolStringArray(), is_recursive := false, do_skip_hidden := true
+) -> PoolStringArray:
+	var file_paths := PoolStringArray()
+	var directory := Directory.new()
 
 	if not directory.dir_exists(dirpath):
 		printerr("The directory does not exist: %s" % dirpath)
@@ -26,11 +28,11 @@ func find_files(dirpath := "", patterns := PoolStringArray(), is_recursive := fa
 		return file_paths
 
 	directory.list_dir_begin(true, do_skip_hidden)
-	var file_name: = directory.get_next()
-	var subdirectories: = PoolStringArray()
+	var file_name := directory.get_next()
+	var subdirectories := PoolStringArray()
 	while file_name != "":
 		if directory.current_is_dir() and is_recursive:
-			var subdirectory: = dirpath.plus_file(file_name)
+			var subdirectory := dirpath.plus_file(file_name)
 			file_paths.append_array(find_files(subdirectory, patterns, is_recursive))
 		else:
 			for pattern in patterns:
@@ -52,13 +54,13 @@ func save_text(path := "", content := "") -> void:
 	if not basename.is_valid_filename():
 		printerr("Couldn't save: the file name, %s, contains invalid characters." % basename)
 		return
-	
+
 	var directory := Directory.new()
 	if not directory.dir_exists(dirpath):
 		directory.make_dir(dirpath)
-	
+
 	var file := File.new()
-	
+
 	file.open(path, File.WRITE)
 	file.store_string(content)
 	file.close()
@@ -66,10 +68,16 @@ func save_text(path := "", content := "") -> void:
 
 
 # Parses a list of GDScript files and returns a list of dictionaries with the
-# code reference data. If `refresh_cache` is true, will refresh Godot's cache
-# and get fresh symbols.
-func get_reference(files := PoolStringArray(), refresh_cache := false) -> Array:
-	var reference := []
+# code reference data.
+#
+# If `refresh_cache` is true, will refresh Godot's cache and get fresh symbols.
+func get_reference(files := PoolStringArray(), refresh_cache := false) -> Dictionary:
+	var data := {
+		name = ProjectSettings.get_setting("application/config/name"),
+		description = ProjectSettings.get_setting("application/config/description"),
+		version = ProjectSettings.get_setting("application/config/version"),
+		classes = []
+	}
 	var workspace = Engine.get_singleton('GDScriptLanguageProtocol').get_workspace()
 	for file in files:
 		if not file.ends_with(".gd"):
@@ -77,9 +85,9 @@ func get_reference(files := PoolStringArray(), refresh_cache := false) -> Array:
 		if refresh_cache:
 			workspace.parse_local_script(file)
 		var symbols: Dictionary = workspace.generate_script_api(file)
-		reference.append(symbols)
-	return reference
+		data["classes"].append(symbols)
+	return data
 
 
-func print_pretty_json(reference: Array) -> String:
+func print_pretty_json(reference: Dictionary) -> String:
 	return JSON.print(reference, "  ")
