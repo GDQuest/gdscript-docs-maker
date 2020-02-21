@@ -37,7 +37,7 @@ def parse(args=sys.argv) -> Namespace:
         "files", type=str, nargs="+", default="", help="A list of paths to JSON files."
     )
     parser.add_argument(
-        "-p", "--path", type=str, default="dist", help="Path to the output directory."
+        "-p", "--path", type=str, default="export", help="Path to the output directory."
     )
     parser.add_argument(
         "-f",

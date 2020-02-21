@@ -13,6 +13,11 @@ This document lists new features, improvements, changes, and bug fixes in every 
       more recent Godot versions should have this defined by default. Upon
       exporting your game, Godot should also use this version number.
 
+### Changes ###
+
+- Changed the default export directory to "export", as we use "dist" to build
+  the program's pip package itself.
+
 ## GDScript Docs Maker 1.2.1 ##
 
 ### Changes ###
