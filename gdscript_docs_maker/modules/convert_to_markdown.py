@@ -211,7 +211,7 @@ def write_table_of_contents(classes: GDScriptClasses) -> List[str]:
 
         for gdscript_class in group:
             link: str = indent + "- " + make_link(
-                gdscript_class.name, gdscript_class.name + ".md"
+                gdscript_class.name, gdscript_class.name
             )
             toc.append(link)
 
