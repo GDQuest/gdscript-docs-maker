@@ -1,10 +1,10 @@
 """Converts the json representation of GDScript classes as dictionaries into objects
 """
+import itertools
+import operator
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Tuple
-import itertools
-import operator
 
 BUILTIN_VIRTUAL_CALLBACKS = [
     "_process",
@@ -32,28 +32,41 @@ TYPE_CONSTRUCTOR = "_init"
 
 
 @dataclass
-class ProjectInfo:
-    name: str
-    description: str
-    version: str
+class Metadata:
+    """Container for metadata for Elements"""
 
-    @classmethod
-    def from_dict(cls, data: dict):
-        return ProjectInfo(data["name"], data["description"], data["version"])
+    tags: List[str] = []
+    category: str = ""
+    references: List["Element"] = []
 
 
-@dataclass
-class Argument:
-    name: str
-    type: str
+def extract_metadata(description: str) -> Tuple[str, Metadata]:
+    """Finds metadata keys in the provided description and returns the description
+without the corresponding lines, as well as the metadata. In the source text,
+Metadata should be of the form key: value, e.g. category: Category Name
 
+    """
+    tags: List[str] = []
+    category: str = ""
+    references: List[Element] = []
 
-@dataclass
-class Signal:
-    signature: str
-    name: str
-    description: str
-    arguments: List[str]
+    lines: List[str] = description.split("\n")
+    description_trimmed: List[str] = []
+    for index, line in enumerate(lines):
+        line_stripped: str = line.strip().lower()
+
+        if line_stripped.startswith("tags:"):
+            tags = line[line.find(":") + 1 :].split(",")
+            tags = list(map(lambda t: t.strip(), tags))
+            continue
+        elif line_stripped.startswith("category:"):
+            category = line[line.find(":") + 1 :].strip()
+            continue
+        else:
+            description_trimmed.append(line)
+
+    metadata: Metadata = Metadata(tags, category, references)
+    return "\n".join(description_trimmed), metadata
 
 
 class FunctionTypes(Enum):
@@ -63,52 +76,130 @@ class FunctionTypes(Enum):
 
 
 @dataclass
-class Function:
-    signature: str
-    kind: FunctionTypes
+class ProjectInfo:
     name: str
     description: str
-    return_type: str
-    arguments: List[Argument]
-    rpc_mode: int
-    tags: List[str]
+    version: str
 
-    def summarize(self) -> List[str]:
-        return [self.return_type, self.signature]
+    @staticmethod
+    def from_dict(data: dict):
+        return ProjectInfo(data["name"], data["description"], data["version"])
 
 
 @dataclass
-class Enumeration:
-    """Represents an enum with its constants"""
+class Element:
+    """Base type for all main GDScript symbol types. Contains properties common to
+Signals, Functions, Member variables, etc."""
 
     signature: str
     name: str
     description: str
-    values: dict
 
-    @classmethod
-    def from_dict(cls, data: dict):
-        return Enumeration(
-            data["signature"], data["name"], data["description"], data["value"]
+    def __post_init__(self):
+        _description, self.metadata = extract_metadata(self.description)
+        self.description = _description.strip(" \n")
+
+    @staticmethod
+    def from_dict(data: dict) -> "Element":
+        return Element(data["signature"], data["name"], data["description"])
+
+
+@dataclass
+class Signal(Element):
+    arguments: List[str]
+
+    @staticmethod
+    def from_dict(data: dict) -> "Signal":
+        return Signal(
+            data["signature"], data["name"], data["description"], data["arguments"],
         )
 
 
 @dataclass
-class Member:
+class Argument:
+    """Container for function arguments."""
+
+    name: str
+    type: str
+
+
+@dataclass
+class Function(Element):
+    kind: FunctionTypes
+    return_type: str
+    arguments: List[Argument]
+    rpc_mode: int
+
+    def __post_init__(self):
+        super().__post_init__(self)
+        self.signature = self.signature.replace("-> null", "-> void", 1)
+        self.return_type = self.return_type.replace("null", "void", 1)
+
+    def summarize(self) -> List[str]:
+        return [self.return_type, self.signature]
+
+    @staticmethod
+    def from_dict(data: dict) -> "Function":
+        """Builds and returns a Function from `data` if the function should be in the class reference. """
+        kind: FunctionTypes = FunctionTypes.METHOD
+        if data["is_static"]:
+            kind = FunctionTypes.STATIC
+        elif data["is_virtual"]:
+            kind = FunctionTypes.VIRTUAL
+
+        return Function(
+            data["signature"],
+            data["name"],
+            data["description"],
+            kind,
+            data["return_type"],
+            Function._get_arguments(data["arguments"]),
+            data["rpc_mode"] if "rpc_mode" in data else 0,
+        )
+
+    @staticmethod
+    def _get_arguments(data: List[dict]) -> List[Argument]:
+        return [Argument(entry["name"], entry["type"],) for entry in data]
+
+
+@dataclass
+class Enumeration(Element):
+    """Represents an enum with its constants"""
+
+    values: dict
+
+    @staticmethod
+    def from_dict(data: dict) -> "Enumeration":
+        return Enumeration(
+            data["signature"], data["name"], data["description"], data["value"],
+        )
+
+
+@dataclass
+class Member(Element):
     """Represents a property or member variable"""
 
-    signature: str
-    name: str
-    description: str
     type: str
     default_value: str
     is_exported: bool
     setter: str
     getter: str
-    tags: List[str]
 
     def summarize(self) -> List[str]:
         return [self.type, self.name]
+
+    @staticmethod
+    def from_dict(data: dict) -> "Member":
+        return Member(
+            data["signature"],
+            data["name"],
+            data["description"],
+            data["data_type"],
+            data["default_value"],
+            data["export"],
+            data["setter"],
+            data["getter"],
+        )
 
 
 @dataclass
@@ -121,16 +212,15 @@ class GDScriptClass:
     members: List[Member]
     signals: List[Signal]
     enums: List[Enumeration]
-    tags: List[str]
-    category: str
+    metadata: Metadata
 
-    @classmethod
-    def from_dict(cls, data: dict):
-        description, tags, category = get_metadata(data["description"])
+    @staticmethod
+    def from_dict(data: dict):
+        description, metadata = extract_metadata(data["description"])
         return GDScriptClass(
             data["name"],
             data["extends_class"],
-            description.strip(" \n"),
+            description.strip("\n "),
             data["path"],
             _get_functions(data["methods"])
             + _get_functions(data["static_functions"], is_static=True),
@@ -141,8 +231,7 @@ class GDScriptClass:
                 for entry in data["constants"]
                 if entry["data_type"] == "Dictionary"
             ],
-            tags,
-            category,
+            metadata,
         )
 
     def extends_as_string(self) -> str:
@@ -173,48 +262,21 @@ class GDScriptClasses(list):
 attribute"""
         return self._get_grouped_by("category")
 
-    @classmethod
-    def from_dict_list(cls, data: List[dict]):
+    @staticmethod
+    def from_dict_list(data: List[dict]):
         return GDScriptClasses(
             [GDScriptClass.from_dict(entry) for entry in data if "name" in entry]
         )
 
 
-def get_metadata(description: str) -> Tuple[str, List[str], str]:
-    """Returns a tuple of (description, tags, category) from a docstring.
-
-metadata should be of the form key: value, e.g. category: Category Name"""
-    tags: List[str] = []
-    category: str = ""
-
-    lines: List[str] = description.split("\n")
-    description_trimmed: List[str] = []
-    for index, line in enumerate(lines):
-        line_stripped: str = line.strip().lower()
-
-        if line_stripped.startswith("tags:"):
-            tags = line[line.find(":") + 1 :].split(",")
-            tags = list(map(lambda t: t.strip(), tags))
-            continue
-        elif line_stripped.startswith("category:"):
-            category = line[line.find(":") + 1 :].strip()
-            continue
-        else:
-            description_trimmed.append(line)
-    return "\n".join(description_trimmed), tags, category
-
-
 def _get_signals(data: List[dict]) -> List[Signal]:
-    signals: List[Signal] = []
-    for entry in data:
-        signal: Signal = Signal(
-            entry["signature"], entry["name"], entry["description"], entry["arguments"],
-        )
-        signals.append(signal)
-    return signals
+    return [Signal.from_dict(entry) for entry in data]
 
 
 def _get_functions(data: List[dict], is_static: bool = False) -> List[Function]:
+    """Returns a list of valid functions to put in the class reference. Skips
+built-in virtual callbacks, except for constructor functions marked for
+inclusion, and private methods."""
     functions: List[Function] = []
     for entry in data:
         name: str = entry["name"]
@@ -223,59 +285,22 @@ def _get_functions(data: List[dict], is_static: bool = False) -> List[Function]:
         if name == TYPE_CONSTRUCTOR and not entry["arguments"]:
             continue
 
-        description, tags, _ = get_metadata(entry["description"])
-        is_virtual: bool = "virtual" in tags and not is_static
+        _, metadata = extract_metadata(entry["description"])
+
+        is_virtual: bool = "virtual" in metadata.tags and not is_static
         is_private: bool = name.startswith("_") and not is_virtual
         if is_private:
             continue
 
-        kind: FunctionTypes = FunctionTypes.METHOD
-        if is_static:
-            kind = FunctionTypes.STATIC
-        elif is_virtual:
-            kind = FunctionTypes.VIRTUAL
+        function_data: dict = entry
+        function_data["is_virtual"] = is_virtual
+        function_data["is_static"] = is_static
 
-        function: Function = Function(
-            entry["signature"].replace("-> null", "-> void", 1),
-            kind,
-            name,
-            description.strip(" \n"),
-            entry["return_type"].replace("null", "void", 1),
-            _get_arguments(entry["arguments"]),
-            entry["rpc_mode"] if "rpc_mode" in entry else 0,
-            tags,
-        )
-        functions.append(function)
+        functions.append(Function.from_dict(function_data))
     return functions
 
 
-def _get_arguments(data: List[dict]) -> List[Argument]:
-    arguments: List[Argument] = []
-    for entry in data:
-        argument: Argument = Argument(
-            entry["name"], entry["type"],
-        )
-        arguments.append(argument)
-    return arguments
-
-
 def _get_members(data: List[dict]) -> List[Member]:
-    members: List[Member] = []
-    for entry in data:
-        # Skip private members
-        if entry["name"].startswith("_"):
-            continue
-        description, tags, _ = get_metadata(entry["description"])
-        member: Member = Member(
-            entry["signature"],
-            entry["name"],
-            description.strip(" \n"),
-            entry["data_type"],
-            entry["default_value"],
-            entry["export"],
-            entry["setter"],
-            entry["getter"],
-            tags,
-        )
-        members.append(member)
-    return members
+    return [
+        Member.from_dict(entry) for entry in data if not entry["name"].startswith("_")
+    ]
