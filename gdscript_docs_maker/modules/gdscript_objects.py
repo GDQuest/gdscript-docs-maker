@@ -32,6 +32,17 @@ TYPE_CONSTRUCTOR = "_init"
 
 
 @dataclass
+class ProjectInfo:
+    name: str
+    descrption: str
+    version: str
+
+    @classmethod
+    def from_dict(cls, data: dict):
+        return ProjectInfo(data["name"], data["description"], data["version"])
+
+
+@dataclass
 class Argument:
     name: str
     type: str

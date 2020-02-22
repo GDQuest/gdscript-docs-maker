@@ -10,12 +10,9 @@ from typing import List
 
 from .modules import command_line
 from .modules.config import LOG_LEVELS, LOGGER
-from .modules.convert_to_markdown import (
-    ProjectInfo,
-    MarkdownDocument,
-    convert_to_markdown,
-)
-from .modules.gdscript_objects import GDScriptClasses
+from .modules.convert_to_markdown import convert_to_markdown
+from .modules.gdscript_objects import GDScriptClasses, ProjectInfo
+from .modules.make_markdown import MarkdownDocument
 
 
 def main():
