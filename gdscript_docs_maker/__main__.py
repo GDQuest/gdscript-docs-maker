@@ -35,7 +35,9 @@ def main():
                 "Processing {} classes in {}".format(classes_count, os.path.basename(f))
             )
 
-            documents: List[MarkdownDocument] = convert_to_markdown(classes, args)
+            documents: List[MarkdownDocument] = convert_to_markdown(
+                classes, args, project_info
+            )
             if args.dry_run:
                 LOGGER.debug("Generated {} markdown documents.".format(len(documents)))
                 list(map(lambda doc: LOGGER.debug(doc), documents))

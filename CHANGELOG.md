@@ -6,6 +6,8 @@ This document lists new features, improvements, changes, and bug fixes in every 
 
 ### Features ###
 
+- Create an index page with a table of contents. To do so, use the new
+  command-line option `--make-index`. This generates an extra `index.md` file.
 - Store key project information: name, description, and human-readable version string.
     - We get them from the Application Settings in your Godot project.
     - For the project version, in 3.2.0, you need to add it yourself as

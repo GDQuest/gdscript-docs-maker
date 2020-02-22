@@ -11,6 +11,7 @@ from .gdscript_objects import (
     FunctionTypes,
     GDScriptClass,
     GDScriptClasses,
+    ProjectInfo,
     Member,
     Signal,
 )
@@ -26,17 +27,20 @@ from .make_markdown import (
     make_table_header,
     wrap_in_newlines,
     make_comment,
+    make_link,
 )
 
 
 def convert_to_markdown(
-    classes: GDScriptClasses, arguments: Namespace,
+    classes: GDScriptClasses, arguments: Namespace, info: ProjectInfo
 ) -> List[MarkdownDocument]:
     """Takes a list of dictionaries that each represent one GDScript class to
     convert to markdown and returns a list of markdown documents.
 
     """
     markdown: List[MarkdownDocument] = []
+    if arguments.make_index:
+        markdown.append(write_index_page(classes, info))
     for entry in classes:
         markdown.append(as_markdown(entry, arguments))
     return markdown
@@ -181,3 +185,34 @@ def write_functions(
     for function in functions:
         markdown += write_function(function)
     return markdown
+
+
+def write_index_page(classes: GDScriptClasses, info: ProjectInfo) -> MarkdownDocument:
+    title: str = "{} ({})".format(info.name, surround_with_html(info.version, "small"))
+    content: List[str] = [
+        *MarkdownSection(title, 1, info.description).as_text(),
+        *MarkdownSection("Contents", 2, write_table_of_contents(classes)).as_text(),
+    ]
+    return MarkdownDocument("index", content)
+
+
+def write_table_of_contents(classes: GDScriptClasses) -> List[str]:
+    toc: List[str] = []
+
+    by_category = classes.get_grouped_by_category()
+
+    for group in by_category:
+        indent: str = ""
+        first_class: GDScriptClass = group[0]
+        category: str = first_class.category
+        if category:
+            toc.append("- {}".format(make_bold(category)))
+            indent = "  "
+
+        for gdscript_class in group:
+            link: str = indent + "- " + make_link(
+                gdscript_class.name, gdscript_class.name + ".md"
+            )
+            toc.append(link)
+
+    return toc

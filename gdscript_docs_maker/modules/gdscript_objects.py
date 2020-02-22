@@ -34,7 +34,7 @@ TYPE_CONSTRUCTOR = "_init"
 @dataclass
 class ProjectInfo:
     name: str
-    descrption: str
+    description: str
     version: str
 
     @classmethod
@@ -163,7 +163,7 @@ class GDScriptClasses(list):
 
         groups = []
         get_attribute = operator.attrgetter(attribute)
-        data = sorted(self, get_attribute)
+        data = sorted(self, key=get_attribute)
         for key, group in itertools.groupby(data, get_attribute):
             groups.append(list(group))
         return groups

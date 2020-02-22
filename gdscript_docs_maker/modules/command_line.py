@@ -64,6 +64,13 @@ def parse(args=sys.argv) -> Namespace:
         "export format.",
     )
     parser.add_argument(
+        "-i",
+        "--make-index",
+        action="store_true",
+        default=False,
+        help="If this flag is present, create an index.md page with a table of contents.",
+    )
+    parser.add_argument(
         "-v",
         "--verbose",
         action="count",
