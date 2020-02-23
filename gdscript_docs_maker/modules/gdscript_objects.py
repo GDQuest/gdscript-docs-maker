@@ -4,7 +4,9 @@ import itertools
 import operator
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Tuple
+from typing import List, Tuple, cast
+
+from .utils import cached_property
 
 BUILTIN_VIRTUAL_CALLBACKS = [
     "_process",
@@ -35,8 +37,8 @@ TYPE_CONSTRUCTOR = "_init"
 class Metadata:
     """Container for metadata for Elements"""
 
-    tags: List[str] = []
-    category: str = ""
+    tags: List[str]
+    category: str
 
 
 def extract_metadata(description: str) -> Tuple[str, Metadata]:
@@ -232,6 +234,17 @@ class GDScriptClass:
             ],
         )
 
+    @cached_property
+    def get_symbols(self) -> set:
+        """Returns a set of all the symbols in the class. Used to generate a hash map to
+create markdown links between or within files. See GDScriptClasses.get_class_index.
+
+        """
+        elements: List[Element] = cast(List[Element], self.functions) + cast(
+            List[Element], self.members
+        ) + cast(List[Element], self.signals)
+        return {element.name for element in elements}
+
     def extends_as_string(self) -> str:
         return " < ".join(self.extends)
 
@@ -259,6 +272,16 @@ class GDScriptClasses(list):
         """Returns a list of lists of GDScriptClass objects, grouped by their `category`
 attribute"""
         return self._get_grouped_by("category")
+
+    @cached_property
+    def get_class_index(self) -> dict:
+        """Computes and returns the index of classes, properties, and methods as a hash
+table.
+
+        """
+        return {
+            gdscript_class.name: gdscript_class.get_symbols() for gdscript_class in self
+        }
 
     @staticmethod
     def from_dict_list(data: List[dict]):
