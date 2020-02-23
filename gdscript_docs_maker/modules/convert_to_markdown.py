@@ -72,8 +72,9 @@ def as_markdown(gdscript: GDScriptClass, arguments: Namespace) -> MarkdownDocume
 
     if output_format == OutputFormats.MARDKOWN:
         content += [*make_heading(name, 1)]
+    if gdscript.extends:
+        content += [make_bold("Extends:") + " " + gdscript.extends_as_string()]
     content += [
-        make_bold("Extends:") + " " + gdscript.extends_as_string(),
         *MarkdownSection("Description", 2, [gdscript.description]).as_text(),
         # Overview of the properties and methods
         *MarkdownSection("Properties", 2, summarize_members(gdscript)).as_text(),

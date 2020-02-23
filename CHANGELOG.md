@@ -23,6 +23,7 @@ This document lists new features, improvements, changes, and bug fixes in every 
 - The Windows `generate_reference.bat` command-line script now supports
   command-line flags and arguments. The script also now checks for and prevents
   common errors.
+- Remove `extends` line if the class doesn't extend any type.
 
 ### Changes ###
 
