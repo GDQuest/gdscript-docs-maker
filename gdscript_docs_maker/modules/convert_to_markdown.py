@@ -74,11 +74,16 @@ def as_markdown(gdscript: GDScriptClass, arguments: Namespace) -> MarkdownDocume
         content += [*make_heading(name, 1)]
     if gdscript.extends:
         content += [make_bold("Extends:") + " " + gdscript.extends_as_string()]
+    content += [*MarkdownSection("Description", 2, [gdscript.description]).as_text()]
+
+    members_summary: List[str] = summarize_members(gdscript)
+    methods_summary: List[str] = summarize_methods(gdscript)
+    if members_summary:
+        content += MarkdownSection("Properties", 2, members_summary).as_text()
+    if methods_summary:
+        content += MarkdownSection("Methods", 2, methods_summary).as_text()
+
     content += [
-        *MarkdownSection("Description", 2, [gdscript.description]).as_text(),
-        # Overview of the properties and methods
-        *MarkdownSection("Properties", 2, summarize_members(gdscript)).as_text(),
-        *MarkdownSection("Methods", 2, summarize_methods(gdscript)).as_text(),
         *MarkdownSection("Signals", 2, write_signals(gdscript.signals)).as_text(),
         *MarkdownSection(
             "Enumerations", 2, write_enums(gdscript.enums, output_format)
@@ -107,6 +112,8 @@ def summarize_members(gdscript: GDScriptClass) -> List[str]:
 
 
 def summarize_methods(gdscript: GDScriptClass) -> List[str]:
+    if not gdscript.functions:
+        return []
     header: List[str] = make_table_header(["Type", "Name"])
     return header + [
         make_table_row(function.summarize()) for function in gdscript.functions

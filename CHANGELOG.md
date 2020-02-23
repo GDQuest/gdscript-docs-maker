@@ -24,6 +24,8 @@ This document lists new features, improvements, changes, and bug fixes in every 
   command-line flags and arguments. The script also now checks for and prevents
   common errors.
 - Remove `extends` line if the class doesn't extend any type.
+- Remove properties summary and methods summary if the class respectively
+  doesn't have public properties or methods.
 
 ### Changes ###
 
