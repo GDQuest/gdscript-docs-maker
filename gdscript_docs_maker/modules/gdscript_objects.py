@@ -37,7 +37,6 @@ class Metadata:
 
     tags: List[str] = []
     category: str = ""
-    references: List["Element"] = []
 
 
 def extract_metadata(description: str) -> Tuple[str, Metadata]:
@@ -48,7 +47,6 @@ Metadata should be of the form key: value, e.g. category: Category Name
     """
     tags: List[str] = []
     category: str = ""
-    references: List[Element] = []
 
     lines: List[str] = description.split("\n")
     description_trimmed: List[str] = []
@@ -65,7 +63,7 @@ Metadata should be of the form key: value, e.g. category: Category Name
         else:
             description_trimmed.append(line)
 
-    metadata: Metadata = Metadata(tags, category, references)
+    metadata: Metadata = Metadata(tags, category)
     return "\n".join(description_trimmed), metadata
 
 
@@ -140,7 +138,6 @@ class Function(Element):
 
     @staticmethod
     def from_dict(data: dict) -> "Function":
-        """Builds and returns a Function from `data` if the function should be in the class reference. """
         kind: FunctionTypes = FunctionTypes.METHOD
         if data["is_static"]:
             kind = FunctionTypes.STATIC
@@ -212,15 +209,17 @@ class GDScriptClass:
     members: List[Member]
     signals: List[Signal]
     enums: List[Enumeration]
-    metadata: Metadata
+
+    def __post_init__(self):
+        description, self.metadata = extract_metadata(self.description)
+        self.description = description.strip("\n ")
 
     @staticmethod
     def from_dict(data: dict):
-        description, metadata = extract_metadata(data["description"])
         return GDScriptClass(
             data["name"],
             data["extends_class"],
-            description.strip("\n "),
+            data["description"],
             data["path"],
             _get_functions(data["methods"])
             + _get_functions(data["static_functions"], is_static=True),
@@ -231,7 +230,6 @@ class GDScriptClass:
                 for entry in data["constants"]
                 if entry["data_type"] == "Dictionary"
             ],
-            metadata,
         )
 
     def extends_as_string(self) -> str:
