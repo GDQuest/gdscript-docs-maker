@@ -2,6 +2,7 @@
 documents"""
 from argparse import Namespace
 from typing import List
+import re
 
 from . import hugo
 from .command_line import OutputFormats
@@ -224,3 +225,32 @@ def write_table_of_contents(classes: GDScriptClasses) -> List[str]:
             toc.append(link)
 
     return toc
+
+
+def replace_references(classes: GDScriptClasses, description: str) -> str:
+    """Finds and replaces references to other classes or methods in the
+`description`."""
+    references: re.Match = re.findall(r"\[.+\]", description)
+
+    pattern: str = r"([A-Z]\w*)?\.?([a-z_]+)?"
+    for reference in references:
+        match: re.Match = re.match(pattern, match)
+        if not match:
+            continue
+
+        class_name, member = match[1], match[2]
+        index: dict = classes.get_class_index()
+        if class_name and class_name not in index:
+            continue
+        if member and member not in index[class_name]:
+            continue
+
+        display_text, path = class_name, class_name
+        if class_name and member:
+            display_text += "."
+            path += "/#"
+        if member:
+            display_text += member
+            path += member.replace("_", "-")
+        description.replace(reference, make_link(display_text, path), 1)
+    return description
