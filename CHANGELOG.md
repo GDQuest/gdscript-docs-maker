@@ -18,6 +18,12 @@ This document lists new features, improvements, changes, and bug fixes in every 
   classes by categories. Add a line with `# category: My Category` in your
   class's docstring to register a category for it.
 
+### Improvements ###
+
+- The Windows `generate_reference.bat` command-line script now supports
+  command-line flags and arguments. The script also now checks for and prevents
+  common errors.
+
 ### Changes ###
 
 - Changed the default export directory to "export", as we use "dist" to build
