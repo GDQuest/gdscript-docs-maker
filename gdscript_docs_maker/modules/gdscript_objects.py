@@ -237,7 +237,7 @@ class GDScriptClass:
     @cached_property
     def get_symbols(self) -> set:
         """Returns a set of all the symbols in the class. Used to generate a hash map to
-create markdown links between or within files. See GDScriptClasses.get_class_index.
+create markdown links between or within files. See GDScriptClasses.class_index.
 
         """
         elements: List[Element] = cast(List[Element], self.functions) + cast(
@@ -274,13 +274,13 @@ attribute"""
         return self._get_grouped_by("category")
 
     @cached_property
-    def get_class_index(self) -> dict:
+    def class_index(self) -> dict:
         """Computes and returns the index of classes, properties, and methods as a hash
 table.
 
         """
         return {
-            gdscript_class.name: gdscript_class.get_symbols() for gdscript_class in self
+            gdscript_class.name: gdscript_class.get_symbols for gdscript_class in self
         }
 
     @staticmethod

@@ -1,19 +1,20 @@
 """Parses the JSON data from Godot as a dictionary and outputs markdown
 documents"""
+import re
 from argparse import Namespace
 from typing import List
-import re
 
 from . import hugo
 from .command_line import OutputFormats
+from .config import LOGGER
 from .gdscript_objects import (
     Enumeration,
     Function,
     FunctionTypes,
     GDScriptClass,
     GDScriptClasses,
-    ProjectInfo,
     Member,
+    ProjectInfo,
     Signal,
 )
 from .hugo import HugoFrontMatter
@@ -22,13 +23,13 @@ from .make_markdown import (
     MarkdownSection,
     make_bold,
     make_code_block,
-    make_heading,
-    surround_with_html,
-    make_table_row,
-    make_table_header,
-    wrap_in_newlines,
     make_comment,
+    make_heading,
     make_link,
+    make_table_header,
+    make_table_row,
+    surround_with_html,
+    wrap_in_newlines,
 )
 
 
@@ -43,11 +44,13 @@ def convert_to_markdown(
     if arguments.make_index:
         markdown.append(_write_index_page(classes, info))
     for entry in classes:
-        markdown.append(_as_markdown(entry, arguments))
+        markdown.append(_as_markdown(classes, entry, arguments))
     return markdown
 
 
-def _as_markdown(gdscript: GDScriptClass, arguments: Namespace) -> MarkdownDocument:
+def _as_markdown(
+    classes: GDScriptClasses, gdscript: GDScriptClass, arguments: Namespace
+) -> MarkdownDocument:
     """Converts the data for a GDScript class to a markdown document, using the command line
     options."""
 
@@ -55,7 +58,7 @@ def _as_markdown(gdscript: GDScriptClass, arguments: Namespace) -> MarkdownDocum
     output_format: OutputFormats = arguments.format
 
     name: str = gdscript.name
-    if "abstract" in gdscript.tags:
+    if "abstract" in gdscript.metadata.tags:
         name += " " + surround_with_html("(abstract)", "small")
 
     if output_format == OutputFormats.HUGO:
@@ -74,30 +77,41 @@ def _as_markdown(gdscript: GDScriptClass, arguments: Namespace) -> MarkdownDocum
         content += [*make_heading(name, 1)]
     if gdscript.extends:
         content += [make_bold("Extends:") + " " + gdscript.extends_as_string()]
-    content += [*MarkdownSection("Description", 2, [gdscript.description]).as_text()]
+    description = _replace_references(classes, gdscript, gdscript.description)
+    content += [*MarkdownSection("Description", 2, [description]).as_text()]
 
-    members_summary: List[str] = _write_members_summary(gdscript)
-    methods_summary: List[str] = _write_methods_summary(gdscript)
-    if members_summary:
-        content += MarkdownSection("Properties", 2, members_summary).as_text()
-    if methods_summary:
-        content += MarkdownSection("Methods", 2, methods_summary).as_text()
+    if gdscript.members:
+        content += MarkdownSection(
+            "Properties", 2, _write_members_summary(gdscript)
+        ).as_text()
+    if gdscript.functions:
+        content += MarkdownSection(
+            "Methods", 2, _write_methods_summary(gdscript)
+        ).as_text()
 
-    content += [
-        *MarkdownSection("Signals", 2, _write_signals(gdscript.signals)).as_text(),
-        *MarkdownSection(
-            "Enumerations", 2, _write_enums(gdscript.enums, output_format)
-        ).as_text(),
-        # Full reference for the properties and methods.
-        *MarkdownSection(
-            "Property Descriptions", 2, _write_members(gdscript.members, output_format)
-        ).as_text(),
-        *MarkdownSection(
+    if gdscript.signals:
+        content += MarkdownSection(
+            "Signals", 2, _write_signals(classes, gdscript)
+        ).as_text()
+    if gdscript.enums:
+        content += MarkdownSection(
+            "Enumerations", 2, _write_enums(classes, gdscript, output_format)
+        ).as_text()
+    #
+    # Full reference for the properties and methods.
+    if gdscript.members:
+        content += MarkdownSection(
+            "Property Descriptions",
+            2,
+            _write_members(classes, gdscript, output_format),
+        ).as_text()
+    if gdscript.functions:
+        content += MarkdownSection(
             "Method Descriptions",
             2,
-            _write_functions(gdscript.functions, output_format),
-        ).as_text(),
-    ]
+            _write_functions(classes, gdscript, output_format),
+        ).as_text()
+
     doc: MarkdownDocument = MarkdownDocument(
         gdscript.name, content,
     )
@@ -120,29 +134,45 @@ def _write_methods_summary(gdscript: GDScriptClass) -> List[str]:
     ]
 
 
-def _write_signals(signals: List[Signal]) -> List[str]:
-    if not signals:
-        return []
-    return wrap_in_newlines(["- {}".format(s.signature) for s in signals])
+def _write_signals(classes: GDScriptClasses, gdscript: GDScriptClass) -> List[str]:
+    return wrap_in_newlines(
+        [
+            "- {}: {}".format(
+                s.signature, _replace_references(classes, gdscript, s.description)
+            )
+            for s in gdscript.signals
+        ]
+    )
 
 
-def _write_enums(enums: List[Enumeration], output_format: OutputFormats) -> List[str]:
-    def write(enum: Enumeration) -> List[str]:
+def _write_enums(
+    classes: GDScriptClasses, gdscript: GDScriptClass, output_format: OutputFormats
+) -> List[str]:
+    def write(
+        classes: GDScriptClasses, gdscript: GDScriptClass, enum: Enumeration
+    ) -> List[str]:
         markdown: List[str] = []
         markdown.extend(make_heading(enum.name, 3))
         if output_format == OutputFormats.HUGO:
             markdown.extend([hugo.highlight_code(enum.signature), ""])
         else:
             markdown.extend([make_code_block(enum.signature), ""])
-        markdown.append(enum.description)
+        description: str = _replace_references(classes, gdscript, enum.description)
+        markdown.append(description)
         return markdown
 
     markdown: List[str] = []
-    return [markdown.extend(write(enum)) for enum in enums]
+    for enum in gdscript.enums:
+        markdown += write(classes, gdscript, enum)
+    return markdown
 
 
-def _write_members(members: List[Member], output_format: OutputFormats) -> List[str]:
-    def write(member: Member) -> List[str]:
+def _write_members(
+    classes: GDScriptClasses, gdscript: GDScriptClass, output_format: OutputFormats
+) -> List[str]:
+    def write(
+        classes: GDScriptClasses, gdscript: GDScriptClass, member: Member
+    ) -> List[str]:
         markdown: List[str] = []
         markdown.extend(make_heading(member.name, 3))
         if output_format == OutputFormats.HUGO:
@@ -157,17 +187,22 @@ def _write_members(members: List[Member], output_format: OutputFormats) -> List[
                 setget.append(make_table_row(["Getter", member.getter]))
             setget.append("")
             markdown.extend(setget)
-        markdown.append(member.description)
+        description: str = _replace_references(classes, gdscript, member.description)
+        markdown.append(description)
         return markdown
 
     markdown: List[str] = []
-    return [markdown.extend(write(member)) for member in members]
+    for member in gdscript.members:
+        markdown += write(classes, gdscript, member)
+    return markdown
 
 
 def _write_functions(
-    functions: List[Function], output_format: OutputFormats
+    classes: GDScriptClasses, gdscript: GDScriptClass, output_format: OutputFormats
 ) -> List[str]:
-    def write(function: Function) -> List[str]:
+    def write(
+        classes: GDScriptClasses, gdscript: GDScriptClass, function: Function
+    ) -> List[str]:
         markdown: List[str] = []
 
         heading: str = function.name
@@ -182,13 +217,16 @@ def _write_functions(
         else:
             markdown.extend([make_code_block(function.signature), ""])
         if function.description:
-            markdown.extend(["", function.description])
+            description: str = _replace_references(
+                classes, gdscript, function.description
+            )
+            markdown.extend(["", description])
         return markdown
 
     markdown: List[str] = []
-    for function in functions:
-        markdown += write(function)
-    return [markdown.extend(write(function)) for function in functions]
+    for function in gdscript.functions:
+        markdown += write(classes, gdscript, function)
+    return markdown
 
 
 def _write_index_page(classes: GDScriptClasses, info: ProjectInfo) -> MarkdownDocument:
@@ -222,30 +260,54 @@ def _write_table_of_contents(classes: GDScriptClasses) -> List[str]:
     return toc
 
 
-def _replace_references(classes: GDScriptClasses, description: str) -> str:
+def _replace_references(
+    classes: GDScriptClasses, gdscript: GDScriptClass, description: str
+) -> str:
     """Finds and replaces references to other classes or methods in the
 `description`."""
-    references: re.Match = re.findall(r"\[.+\]", description)
+    ERROR_MESSAGES = {
+        "class": "Class {} not found in the class index.",
+        "member": "Symbol {} not found in {}. The name might be incorrect.",
+    }
+    ERROR_TAIL = "The name might be incorrect."
 
-    pattern: str = r"([A-Z]\w*)?\.?([a-z_]+)?"
+    references: re.Match = re.findall(r"\[.+\]", description)
     for reference in references:
-        match: re.Match = re.match(pattern, match)
+        # Matches [ClassName], [symbol], and [ClassName.symbol]
+        match: re.Match = re.match(
+            r"\[([A-Z][a-zA-Z0-9]*)?\.?([a-z0-9_]+)?\]", reference
+        )
         if not match:
             continue
 
         class_name, member = match[1], match[2]
-        index: dict = classes.get_class_index()
-        if class_name and class_name not in index:
-            continue
-        if member and member not in index[class_name]:
+
+        if class_name and class_name not in classes.class_index:
+            LOGGER.warning(ERROR_MESSAGES["class"].format(class_name) + ERROR_TAIL)
             continue
 
-        display_text, path = class_name, class_name
+        if member and class_name:
+            if member not in classes.class_index[class_name]:
+                LOGGER.warning(
+                    ERROR_MESSAGES["member"].format(member, class_name) + ERROR_TAIL
+                )
+                continue
+        elif member and member not in classes.class_index[gdscript.name]:
+            LOGGER.warning(
+                ERROR_MESSAGES["member"].format(member, gdscript.name) + ERROR_TAIL
+            )
+            continue
+
+        display_text, path = "", ""
+        if class_name:
+            display_text, path = class_name, class_name
         if class_name and member:
             display_text += "."
-            path += "/#"
+            path += "/"
         if member:
             display_text += member
-            path += member.replace("_", "-")
-        description.replace(reference, make_link(display_text, path), 1)
+            path += "#" + member.replace("_", "-")
+
+        link: str = make_link(display_text, path)
+        description = description.replace(reference, link, 1)
     return description
