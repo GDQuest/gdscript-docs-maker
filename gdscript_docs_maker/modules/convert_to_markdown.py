@@ -84,9 +84,10 @@ def _as_markdown(
             continue
         content += MarkdownSection(title, 2, summary).as_text()
 
-    content += MarkdownSection(
-        "Signals", 2, _write_signals(classes, gdscript, output_format)
-    ).as_text()
+    if gdscript.signals:
+        content += MarkdownSection(
+            "Signals", 2, _write_signals(classes, gdscript, output_format)
+        ).as_text()
     for attribute, title in [
         ("enums", "Enumerations"),
         ("members", "Property Descriptions"),
