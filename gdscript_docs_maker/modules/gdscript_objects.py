@@ -4,10 +4,9 @@ import itertools
 import operator
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Tuple, cast
+from typing import List, Tuple
 
 from .make_markdown import make_table_row, surround_with_html
-from .utils import cached_property
 
 BUILTIN_VIRTUAL_CALLBACKS = [
     "_process",
@@ -247,6 +246,9 @@ class GDScriptClass:
         description, self.metadata = extract_metadata(self.description)
         self.description = description.strip("\n ")
 
+        elements = self.functions + self.members + self.signals + self.enums
+        self.symbols = {element.name for element in elements}
+
     @staticmethod
     def from_dict(data: dict):
         return GDScriptClass(
@@ -265,17 +267,6 @@ class GDScriptClass:
             ],
         )
 
-    @cached_property
-    def get_symbols(self) -> set:
-        """Returns a set of all the symbols in the class. Used to generate a hash map to
-create markdown links between or within files. See GDScriptClasses.class_index.
-
-        """
-        elements: List[Element] = cast(List[Element], self.functions) + cast(
-            List[Element], self.members
-        ) + cast(List[Element], self.signals)
-        return {element.name for element in elements}
-
     def extends_as_string(self) -> str:
         return " < ".join(self.extends)
 
@@ -287,6 +278,9 @@ class GDScriptClasses(list):
 
     def __init__(self, *args):
         super(GDScriptClasses, self).__init__(args[0])
+        self.class_index = {
+            gdscript_class.name: gdscript_class.symbols for gdscript_class in self
+        }
 
     def _get_grouped_by(self, attribute: str) -> List[List[GDScriptClass]]:
         if not self or attribute not in self[0].__dict__:
@@ -303,16 +297,6 @@ class GDScriptClasses(list):
         """Returns a list of lists of GDScriptClass objects, grouped by their `category`
 attribute"""
         return self._get_grouped_by("category")
-
-    @cached_property
-    def class_index(self) -> dict:
-        """Computes and returns the index of classes, properties, and methods as a hash
-table.
-
-        """
-        return {
-            gdscript_class.name: gdscript_class.get_symbols for gdscript_class in self
-        }
 
     @staticmethod
     def from_dict_list(data: List[dict]):
