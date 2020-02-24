@@ -41,18 +41,17 @@ def convert_to_markdown(
     """
     markdown: List[MarkdownDocument] = []
     if arguments.make_index:
-        markdown.append(write_index_page(classes, info))
+        markdown.append(_write_index_page(classes, info))
     for entry in classes:
-        markdown.append(as_markdown(entry, arguments))
+        markdown.append(_as_markdown(entry, arguments))
     return markdown
 
 
-def as_markdown(gdscript: GDScriptClass, arguments: Namespace) -> MarkdownDocument:
+def _as_markdown(gdscript: GDScriptClass, arguments: Namespace) -> MarkdownDocument:
     """Converts the data for a GDScript class to a markdown document, using the command line
     options."""
 
     content: List[str] = []
-
     output_format: OutputFormats = arguments.format
 
     name: str = gdscript.name
@@ -77,26 +76,26 @@ def as_markdown(gdscript: GDScriptClass, arguments: Namespace) -> MarkdownDocume
         content += [make_bold("Extends:") + " " + gdscript.extends_as_string()]
     content += [*MarkdownSection("Description", 2, [gdscript.description]).as_text()]
 
-    members_summary: List[str] = summarize_members(gdscript)
-    methods_summary: List[str] = summarize_methods(gdscript)
+    members_summary: List[str] = _write_members_summary(gdscript)
+    methods_summary: List[str] = _write_methods_summary(gdscript)
     if members_summary:
         content += MarkdownSection("Properties", 2, members_summary).as_text()
     if methods_summary:
         content += MarkdownSection("Methods", 2, methods_summary).as_text()
 
     content += [
-        *MarkdownSection("Signals", 2, write_signals(gdscript.signals)).as_text(),
+        *MarkdownSection("Signals", 2, _write_signals(gdscript.signals)).as_text(),
         *MarkdownSection(
-            "Enumerations", 2, write_enums(gdscript.enums, output_format)
+            "Enumerations", 2, _write_enums(gdscript.enums, output_format)
         ).as_text(),
         # Full reference for the properties and methods.
         *MarkdownSection(
-            "Property Descriptions", 2, write_members(gdscript.members, output_format)
+            "Property Descriptions", 2, _write_members(gdscript.members, output_format)
         ).as_text(),
         *MarkdownSection(
             "Method Descriptions",
             2,
-            write_functions(gdscript.functions, output_format),
+            _write_functions(gdscript.functions, output_format),
         ).as_text(),
     ]
     doc: MarkdownDocument = MarkdownDocument(
@@ -105,14 +104,14 @@ def as_markdown(gdscript: GDScriptClass, arguments: Namespace) -> MarkdownDocume
     return doc
 
 
-def summarize_members(gdscript: GDScriptClass) -> List[str]:
+def _write_members_summary(gdscript: GDScriptClass) -> List[str]:
     if not gdscript.members:
         return []
     header: List[str] = make_table_header(["Type", "Name"])
     return header + [make_table_row(member.summarize()) for member in gdscript.members]
 
 
-def summarize_methods(gdscript: GDScriptClass) -> List[str]:
+def _write_methods_summary(gdscript: GDScriptClass) -> List[str]:
     if not gdscript.functions:
         return []
     header: List[str] = make_table_header(["Type", "Name"])
@@ -121,14 +120,14 @@ def summarize_methods(gdscript: GDScriptClass) -> List[str]:
     ]
 
 
-def write_signals(signals: List[Signal]) -> List[str]:
+def _write_signals(signals: List[Signal]) -> List[str]:
     if not signals:
         return []
     return wrap_in_newlines(["- {}".format(s.signature) for s in signals])
 
 
-def write_enums(enums: List[Enumeration], output_format: OutputFormats) -> List[str]:
-    def write_enum(enum: Enumeration) -> List[str]:
+def _write_enums(enums: List[Enumeration], output_format: OutputFormats) -> List[str]:
+    def write(enum: Enumeration) -> List[str]:
         markdown: List[str] = []
         markdown.extend(make_heading(enum.name, 3))
         if output_format == OutputFormats.HUGO:
@@ -139,13 +138,11 @@ def write_enums(enums: List[Enumeration], output_format: OutputFormats) -> List[
         return markdown
 
     markdown: List[str] = []
-    for enum in enums:
-        markdown += write_enum(enum)
-    return markdown
+    return [markdown.extend(write(enum)) for enum in enums]
 
 
-def write_members(members: List[Member], output_format: OutputFormats) -> List[str]:
-    def write_member(member: Member) -> List[str]:
+def _write_members(members: List[Member], output_format: OutputFormats) -> List[str]:
+    def write(member: Member) -> List[str]:
         markdown: List[str] = []
         markdown.extend(make_heading(member.name, 3))
         if output_format == OutputFormats.HUGO:
@@ -164,15 +161,13 @@ def write_members(members: List[Member], output_format: OutputFormats) -> List[s
         return markdown
 
     markdown: List[str] = []
-    for member in members:
-        markdown += write_member(member)
-    return markdown
+    return [markdown.extend(write(member)) for member in members]
 
 
-def write_functions(
+def _write_functions(
     functions: List[Function], output_format: OutputFormats
 ) -> List[str]:
-    def write_function(function: Function) -> List[str]:
+    def write(function: Function) -> List[str]:
         markdown: List[str] = []
 
         heading: str = function.name
@@ -192,20 +187,20 @@ def write_functions(
 
     markdown: List[str] = []
     for function in functions:
-        markdown += write_function(function)
-    return markdown
+        markdown += write(function)
+    return [markdown.extend(write(function)) for function in functions]
 
 
-def write_index_page(classes: GDScriptClasses, info: ProjectInfo) -> MarkdownDocument:
+def _write_index_page(classes: GDScriptClasses, info: ProjectInfo) -> MarkdownDocument:
     title: str = "{} ({})".format(info.name, surround_with_html(info.version, "small"))
     content: List[str] = [
         *MarkdownSection(title, 1, info.description).as_text(),
-        *MarkdownSection("Contents", 2, write_table_of_contents(classes)).as_text(),
+        *MarkdownSection("Contents", 2, _write_table_of_contents(classes)).as_text(),
     ]
     return MarkdownDocument("index", content)
 
 
-def write_table_of_contents(classes: GDScriptClasses) -> List[str]:
+def _write_table_of_contents(classes: GDScriptClasses) -> List[str]:
     toc: List[str] = []
 
     by_category = classes.get_grouped_by_category()
@@ -227,7 +222,7 @@ def write_table_of_contents(classes: GDScriptClasses) -> List[str]:
     return toc
 
 
-def replace_references(classes: GDScriptClasses, description: str) -> str:
+def _replace_references(classes: GDScriptClasses, description: str) -> str:
     """Finds and replaces references to other classes or methods in the
 `description`."""
     references: re.Match = re.findall(r"\[.+\]", description)
