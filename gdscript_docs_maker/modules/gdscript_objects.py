@@ -251,9 +251,12 @@ class GDScriptClass:
 
     @staticmethod
     def from_dict(data: dict):
+        # the extends_class field is a list in json even though it only has one
+        # class.
+        extends: str = data["extends_class"][0] if data["extends_class"] else ""
         return GDScriptClass(
             data["name"],
-            data["extends_class"],
+            extends,
             data["description"],
             data["path"],
             _get_functions(data["methods"])
@@ -267,8 +270,21 @@ class GDScriptClass:
             ],
         )
 
-    def extends_as_string(self) -> str:
-        return " < ".join(self.extends)
+    def get_extends_tree(self, classes: "GDScriptClasses") -> List[str]:
+        """Returns the list of ancestors for this class, starting from self.extends.
+
+        Arguments:
+
+        - classes: a GDScriptClasses list of GDScriptClass this object is part
+          of.
+
+        """
+        extends: str = self.extends
+        extends_tree: List[str] = []
+        while extends != "":
+            extends_tree.append(extends)
+            extends = next((cls.extends for cls in classes if cls.name == extends), "")
+        return extends_tree
 
 
 class GDScriptClasses(list):

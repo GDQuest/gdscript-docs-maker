@@ -74,7 +74,9 @@ def _as_markdown(
     if output_format == OutputFormats.MARDKOWN:
         content += [*make_heading(name, 1)]
     if gdscript.extends:
-        content += [make_bold("Extends:") + " " + gdscript.extends_as_string()]
+        extends_list: List[str] = gdscript.get_extends_tree(classes)
+        extends_links = [make_link(entry, entry) for entry in extends_list]
+        content += [make_bold("Extends:") + " " + " < ".join(extends_links)]
     description = _replace_references(classes, gdscript, gdscript.description)
     content += [*MarkdownSection("Description", 2, [description]).as_text()]
 
