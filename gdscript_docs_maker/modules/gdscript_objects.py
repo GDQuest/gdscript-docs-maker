@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Tuple, cast
 
+from .make_markdown import make_table_row, surround_with_html
 from .utils import cached_property
 
 BUILTIN_VIRTUAL_CALLBACKS = [
@@ -99,6 +100,16 @@ Signals, Functions, Member variables, etc."""
         _description, self.metadata = extract_metadata(self.description)
         self.description = _description.strip("\n")
 
+    def get_heading_as_string(self) -> str:
+        """Returns an empty string. Virtual method to get a list of strings representing
+the element as a markdown heading."""
+        return self.name
+
+    def get_unique_attributes_as_markdown(self) -> List[str]:
+        """Returns an empty list. Virtual method to get a list of strings describing the
+unique attributes of this element."""
+        return []
+
     @staticmethod
     def from_dict(data: dict) -> "Element":
         return Element(data["signature"], data["name"], data["description"])
@@ -137,6 +148,16 @@ class Function(Element):
 
     def summarize(self) -> List[str]:
         return [self.return_type, self.signature]
+
+    def get_heading_as_string(self) -> str:
+        """Returns an empty list. Virtual method to get a list of strings representing
+the element as a markdown heading."""
+        heading: str = self.name
+        if self.kind == FunctionTypes.VIRTUAL:
+            heading += " " + surround_with_html("(virtual)", "small")
+        if self.kind == FunctionTypes.STATIC:
+            heading += " " + surround_with_html("(static)", "small")
+        return heading
 
     @staticmethod
     def from_dict(data: dict) -> "Function":
@@ -186,6 +207,16 @@ class Member(Element):
 
     def summarize(self) -> List[str]:
         return [self.type, self.name]
+
+    def get_unique_attributes_as_markdown(self) -> List[str]:
+        setget: List[str] = []
+        if self.setter or self.setter:
+            if self.setter:
+                setget.append(make_table_row(["Setter", self.setter]))
+            if self.getter:
+                setget.append(make_table_row(["Getter", self.getter]))
+            setget.append("")
+        return setget
 
     @staticmethod
     def from_dict(data: dict) -> "Member":

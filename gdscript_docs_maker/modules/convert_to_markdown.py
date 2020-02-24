@@ -1,5 +1,7 @@
 """Parses the JSON data from Godot as a dictionary and outputs markdown
-documents"""
+documents
+
+"""
 import re
 from argparse import Namespace
 from typing import List
@@ -8,14 +10,10 @@ from . import hugo
 from .command_line import OutputFormats
 from .config import LOGGER
 from .gdscript_objects import (
-    Enumeration,
-    Function,
-    FunctionTypes,
+    Element,
     GDScriptClass,
     GDScriptClasses,
-    Member,
     ProjectInfo,
-    Signal,
 )
 from .hugo import HugoFrontMatter
 from .make_markdown import (
@@ -86,17 +84,18 @@ def _as_markdown(
             continue
         content += MarkdownSection(title, 2, summary).as_text()
 
+    content += MarkdownSection(
+        "Signals", 2, _write_signals(classes, gdscript, output_format)
+    ).as_text()
     for attribute, title in [
-        ("signals", "Signals"),
         ("enums", "Enumerations"),
         ("members", "Property Descriptions"),
         ("functions", "Method Descriptions"),
     ]:
         if not getattr(gdscript, attribute):
             continue
-        write_function = globals()["_write_" + attribute]
         content += MarkdownSection(
-            title, 2, write_function(classes, gdscript, output_format)
+            title, 2, _write(attribute, classes, gdscript, output_format)
         ).as_text()
 
     return MarkdownDocument(gdscript.name, content)
@@ -110,6 +109,30 @@ def _write_summary(gdscript: GDScriptClass, key: str) -> List[str]:
     return markdown + [make_table_row(item.summarize()) for item in element_list]
 
 
+def _write(
+    attribute: str,
+    classes: GDScriptClasses,
+    gdscript: GDScriptClass,
+    output_format: OutputFormats,
+) -> List[str]:
+    assert hasattr(gdscript, attribute)
+
+    markdown: List[str] = []
+    for element in getattr(gdscript, attribute):
+        # assert element is Element
+        markdown.extend(make_heading(element.get_heading_as_string(), 3))
+        if output_format == OutputFormats.HUGO:
+            markdown.extend([hugo.highlight_code(element.signature), ""])
+        else:
+            markdown.extend([make_code_block(element.signature), ""])
+        markdown.extend(element.get_unique_attributes_as_markdown())
+        markdown.append("")
+        description: str = _replace_references(classes, gdscript, element.description)
+        markdown.append(description)
+
+    return markdown
+
+
 def _write_signals(
     classes: GDScriptClasses, gdscript: GDScriptClass, output_format: OutputFormats
 ) -> List[str]:
@@ -121,90 +144,6 @@ def _write_signals(
             for s in gdscript.signals
         ]
     )
-
-
-def _write_enums(
-    classes: GDScriptClasses, gdscript: GDScriptClass, output_format: OutputFormats
-) -> List[str]:
-    def write(
-        classes: GDScriptClasses, gdscript: GDScriptClass, enum: Enumeration
-    ) -> List[str]:
-        markdown: List[str] = []
-        markdown.extend(make_heading(enum.name, 3))
-        if output_format == OutputFormats.HUGO:
-            markdown.extend([hugo.highlight_code(enum.signature), ""])
-        else:
-            markdown.extend([make_code_block(enum.signature), ""])
-        description: str = _replace_references(classes, gdscript, enum.description)
-        markdown.append(description)
-        return markdown
-
-    markdown: List[str] = []
-    for enum in gdscript.enums:
-        markdown += write(classes, gdscript, enum)
-    return markdown
-
-
-def _write_members(
-    classes: GDScriptClasses, gdscript: GDScriptClass, output_format: OutputFormats
-) -> List[str]:
-    def write(
-        classes: GDScriptClasses, gdscript: GDScriptClass, member: Member
-    ) -> List[str]:
-        markdown: List[str] = []
-        markdown.extend(make_heading(member.name, 3))
-        if output_format == OutputFormats.HUGO:
-            markdown.extend([hugo.highlight_code(member.signature), ""])
-        else:
-            markdown.extend([make_code_block(member.signature), ""])
-        if member.setter or member.setter:
-            setget: List[str] = []
-            if member.setter:
-                setget.append(make_table_row(["Setter", member.setter]))
-            if member.getter:
-                setget.append(make_table_row(["Getter", member.getter]))
-            setget.append("")
-            markdown.extend(setget)
-        description: str = _replace_references(classes, gdscript, member.description)
-        markdown.append(description)
-        return markdown
-
-    markdown: List[str] = []
-    for member in gdscript.members:
-        markdown += write(classes, gdscript, member)
-    return markdown
-
-
-def _write_functions(
-    classes: GDScriptClasses, gdscript: GDScriptClass, output_format: OutputFormats
-) -> List[str]:
-    def write(
-        classes: GDScriptClasses, gdscript: GDScriptClass, function: Function
-    ) -> List[str]:
-        markdown: List[str] = []
-
-        heading: str = function.name
-        if function.kind == FunctionTypes.VIRTUAL:
-            heading += " " + surround_with_html("(virtual)", "small")
-        if function.kind == FunctionTypes.STATIC:
-            heading += " " + surround_with_html("(static)", "small")
-
-        markdown.extend(make_heading(heading, 3))
-        if output_format == OutputFormats.HUGO:
-            markdown.extend([hugo.highlight_code(function.signature), ""])
-        else:
-            markdown.extend([make_code_block(function.signature), ""])
-        if function.description:
-            description: str = _replace_references(
-                classes, gdscript, function.description
-            )
-            markdown.extend(["", description])
-        return markdown
-
-    markdown: List[str] = []
-    for function in gdscript.functions:
-        markdown += write(classes, gdscript, function)
-    return markdown
 
 
 def _write_index_page(classes: GDScriptClasses, info: ProjectInfo) -> MarkdownDocument:
