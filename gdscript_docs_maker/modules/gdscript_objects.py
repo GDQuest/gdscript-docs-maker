@@ -131,7 +131,7 @@ class Function(Element):
     rpc_mode: int
 
     def __post_init__(self):
-        super().__post_init__(self)
+        super().__post_init__()
         self.signature = self.signature.replace("-> null", "-> void", 1)
         self.return_type = self.return_type.replace("null", "void", 1)
 
