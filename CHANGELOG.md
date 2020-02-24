@@ -6,17 +6,23 @@ This document lists new features, improvements, changes, and bug fixes in every 
 
 ### Features ###
 
-- Create an index page with a table of contents. To do so, use the new
+- Create an **index page** with a table of contents. To do so, use the new
   command-line option `--make-index`. This generates an extra `index.md` file.
-- Store key project information: name, description, and human-readable version string.
-    - We get them from the Application Settings in your Godot project.
-    - For the project version, in 3.2.0, you need to add it yourself as
-      `application/config/version`. It must be with the form "1.0.0". Future or
-      more recent Godot versions should have this defined by default. Upon
-      exporting your game, Godot should also use this version number.
-- Add support for the class `category` metadata: this allows you to group
+- You can now **link between classes**, including to specific methods and
+  properties:
+    - Write `[ClassName]`, `[ClassName.symbol]`, or `[symbol_in_this_class]` and
+    docs maker will replace it with a link to the corresponding page and
+    heading.
+- Add support for the **class category**` metadata: this allows you to group
   classes by categories. Add a line with `# category: My Category` in your
   class's docstring to register a category for it.
+- Store and write key project information: name, description, and human-readable
+  version string.
+    - We get them from the Application Settings in your Godot project.
+    - For the project version, in 3.2.0, you need to add it yourself as
+      `application/config/version. It must be with the form "1.0.0". Future or
+      more recent Godot versions should have this defined by default. Upon
+      exporting your game, Godot should also use this version number.
 
 ### Improvements ###
 
