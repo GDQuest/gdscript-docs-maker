@@ -63,7 +63,7 @@ Metadata should be of the form key: value, e.g. category: Category Name
             category = line[line.find(":") + 1 :].strip()
             continue
         else:
-            description_trimmed.append(line)
+            description_trimmed.append(line.strip())
 
     metadata: Metadata = Metadata(tags, category)
     return "\n".join(description_trimmed), metadata
@@ -97,7 +97,7 @@ Signals, Functions, Member variables, etc."""
 
     def __post_init__(self):
         _description, self.metadata = extract_metadata(self.description)
-        self.description = _description.strip(" \n")
+        self.description = _description.strip("\n")
 
     @staticmethod
     def from_dict(data: dict) -> "Element":
