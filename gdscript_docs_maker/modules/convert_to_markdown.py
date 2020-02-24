@@ -80,61 +80,39 @@ def _as_markdown(
     description = _replace_references(classes, gdscript, gdscript.description)
     content += [*MarkdownSection("Description", 2, [description]).as_text()]
 
-    if gdscript.members:
+    for attribute, title in [("members", "Properties"), ("functions", "Functions")]:
+        summary = _write_summary(gdscript, attribute)
+        if not summary:
+            continue
+        content += MarkdownSection(title, 2, summary).as_text()
+
+    for attribute, title in [
+        ("signals", "Signals"),
+        ("enums", "Enumerations"),
+        ("members", "Property Descriptions"),
+        ("functions", "Method Descriptions"),
+    ]:
+        if not getattr(gdscript, attribute):
+            continue
+        write_function = globals()["_write_" + attribute]
         content += MarkdownSection(
-            "Properties", 2, _write_members_summary(gdscript)
-        ).as_text()
-    if gdscript.functions:
-        content += MarkdownSection(
-            "Methods", 2, _write_methods_summary(gdscript)
+            title, 2, write_function(classes, gdscript, output_format)
         ).as_text()
 
-    if gdscript.signals:
-        content += MarkdownSection(
-            "Signals", 2, _write_signals(classes, gdscript)
-        ).as_text()
-    if gdscript.enums:
-        content += MarkdownSection(
-            "Enumerations", 2, _write_enums(classes, gdscript, output_format)
-        ).as_text()
-    #
-    # Full reference for the properties and methods.
-    if gdscript.members:
-        content += MarkdownSection(
-            "Property Descriptions",
-            2,
-            _write_members(classes, gdscript, output_format),
-        ).as_text()
-    if gdscript.functions:
-        content += MarkdownSection(
-            "Method Descriptions",
-            2,
-            _write_functions(classes, gdscript, output_format),
-        ).as_text()
-
-    doc: MarkdownDocument = MarkdownDocument(
-        gdscript.name, content,
-    )
-    return doc
+    return MarkdownDocument(gdscript.name, content)
 
 
-def _write_members_summary(gdscript: GDScriptClass) -> List[str]:
-    if not gdscript.members:
+def _write_summary(gdscript: GDScriptClass, key: str) -> List[str]:
+    element_list = getattr(gdscript, key)
+    if not element_list:
         return []
-    header: List[str] = make_table_header(["Type", "Name"])
-    return header + [make_table_row(member.summarize()) for member in gdscript.members]
+    markdown: List[str] = make_table_header(["Type", "Name"])
+    return markdown + [make_table_row(item.summarize()) for item in element_list]
 
 
-def _write_methods_summary(gdscript: GDScriptClass) -> List[str]:
-    if not gdscript.functions:
-        return []
-    header: List[str] = make_table_header(["Type", "Name"])
-    return header + [
-        make_table_row(function.summarize()) for function in gdscript.functions
-    ]
-
-
-def _write_signals(classes: GDScriptClasses, gdscript: GDScriptClass) -> List[str]:
+def _write_signals(
+    classes: GDScriptClasses, gdscript: GDScriptClass, output_format: OutputFormats
+) -> List[str]:
     return wrap_in_newlines(
         [
             "- {}: {}".format(
