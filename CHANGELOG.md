@@ -16,6 +16,8 @@ This document lists new features, improvements, changes, and bug fixes in every 
 - Add support for the **class category**` metadata: this allows you to group
   classes by categories. Add a line with `# category: My Category` in your
   class's docstring to register a category for it.
+- Classes now show all ancestors they extend, and the extends list links to
+  the reference of parent classes.
 - Store and write key project information: name, description, and human-readable
   version string.
     - We get them from the Application Settings in your Godot project.
