@@ -11,7 +11,8 @@ from .gdscript_objects import GDScriptClass
 
 @dataclass
 class HugoFrontMatter:
-    """Container for required front matter data for export to hugo-friendly markdown"""
+    """Container for required front matter data for export to hugo-friendly
+markdown"""
 
     title: str
     description: str
@@ -48,6 +49,7 @@ FRONT_MATTER_DEFAULT: HugoFrontMatter = HugoFrontMatter(
 
 
 def highlight_code(content: str, language: str = "gdscript") -> str:
+    """Returns a {{< highlight >}} shortcode as a string."""
     return make_shortcode(content, "highlight", language)
 
 
@@ -57,6 +59,8 @@ def make_relref(target_document: str, language: str = "gdscript") -> str:
 
 
 def make_shortcode(content: str, shortcode: str, *arguments: str, **kwargs: str) -> str:
+    """Returns a shortcode built from the arguments, with the form
+    {{< shortcode *args **kwargs >}}content{{< / shortcode >}}"""
     key_value_pairs: str = " ".join(["{}={}" for key, value in kwargs.items()])
     return "{{{{< {0} {1} {2} >}}}}{3}{{{{< / {0} >}}}}".format(
         shortcode, " ".join(arguments), key_value_pairs, content
@@ -64,4 +68,5 @@ def make_shortcode(content: str, shortcode: str, *arguments: str, **kwargs: str)
 
 
 def quote_string(text: str) -> str:
+    """Quotes and returns the text with escaped \" characters."""
     return '"' + text.replace('"', '\\"') + '"'
