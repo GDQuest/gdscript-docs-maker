@@ -51,6 +51,11 @@ def highlight_code(content: str, language: str = "gdscript") -> str:
     return make_shortcode(content, "highlight", language)
 
 
+def make_relref(target_document: str, language: str = "gdscript") -> str:
+    """Returns a {{< relref >}} shortcode as a string."""
+    return make_shortcode(target_document, "relref")
+
+
 def make_shortcode(content: str, shortcode: str, *arguments: str, **kwargs: str) -> str:
     key_value_pairs: str = " ".join(["{}={}" for key, value in kwargs.items()])
     return "{{{{< {0} {1} {2} >}}}}{3}{{{{< / {0} >}}}}".format(
