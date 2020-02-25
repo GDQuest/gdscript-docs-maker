@@ -2,6 +2,12 @@
 
 This document lists new features, improvements, changes, and bug fixes in every GDScript docs maker release.
 
+## GDScript Docs Maker 1.3.1 ##
+
+### Bug fixes ###
+
+- Fixed an error when using the `--format hugo` option.
+
 ## GDScript Docs Maker 1.3.0 ##
 
 ### Features ###

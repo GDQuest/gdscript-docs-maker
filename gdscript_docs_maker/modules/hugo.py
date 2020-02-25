@@ -32,7 +32,7 @@ class HugoFrontMatter:
     @classmethod
     def from_data(cls, gdscript: GDScriptClass, arguments: Namespace):
         name: str = gdscript.name
-        if "abstract" in gdscript.tags:
+        if "abstract" in gdscript.metadata.tags:
             name += " (abstract)"
         return HugoFrontMatter(
             name,
