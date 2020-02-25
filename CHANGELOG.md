@@ -7,6 +7,7 @@ This document lists new features, improvements, changes, and bug fixes in every 
 ### Bug fixes ###
 
 - Fixed an error when using the `--format hugo` option.
+- Added the relative "../" to links to Fixed links leading to 404 pages.
 
 ## GDScript Docs Maker 1.3.0 ##
 
