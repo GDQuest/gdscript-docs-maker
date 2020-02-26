@@ -2,7 +2,7 @@
 """
 import re
 from dataclasses import dataclass
-from typing import List
+from typing import List, Any
 
 
 @dataclass
@@ -84,6 +84,18 @@ def make_code_block(text: str, language: str = "gdscript") -> str:
 
 def make_link(description: str, target: str) -> str:
     return "[{}]({})".format(description, target)
+
+
+def make_list(
+    strings: List[str], is_numbered: bool = False, indent_level: int = 0
+) -> List[str]:
+    """Returns a bullet or ordered list from strings."""
+    indent: str = "  " * indent_level
+
+    def make_list_item(index: int, string: str) -> str:
+        return indent + "{} {}".format(index + "." if is_numbered else "-", string)
+
+    return [make_list_item(i, string) for i, string in enumerate(strings, start=1)]
 
 
 def make_table_header(cells: List[str]) -> List[str]:

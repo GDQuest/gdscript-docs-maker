@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Tuple
 
-from .make_markdown import make_table_row, surround_with_html
+from .make_markdown import make_bold, make_code_inline, make_list, surround_with_html
 
 BUILTIN_VIRTUAL_CALLBACKS = [
     "_process",
@@ -209,11 +209,12 @@ class Member(Element):
 
     def get_unique_attributes_as_markdown(self) -> List[str]:
         setget: List[str] = []
-        if self.setter or self.setter:
-            if self.setter:
-                setget.append(make_table_row(["Setter", self.setter]))
-            if self.getter:
-                setget.append(make_table_row(["Getter", self.getter]))
+        if self.setter:
+            setget.append(make_bold("Setter") + ": " + make_code_inline(self.setter))
+        if self.getter:
+            setget.append(make_bold("Getter") + ": " + make_code_inline(self.getter))
+        setget = make_list(setget)
+        if len(setget) > 0:
             setget.append("")
         return setget
 
