@@ -86,6 +86,12 @@ def parse(args=sys.argv) -> Namespace:
             " folders. For debugging purposes"
         ),
     )
+    parser.add_argument(
+        "-V",
+        "--version",
+        action="store_true",
+        help="Print the version number and exit.",
+    )
     namespace: Namespace = parser.parse_args(args)
     namespace.verbose = 99999 if namespace.dry_run else namespace.verbose
     return namespace

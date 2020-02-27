@@ -4,6 +4,10 @@ This document lists new features, improvements, changes, and bug fixes in every 
 
 ## GDScript Docs Maker 1.3.1 ##
 
+### Improvements ###
+
+- There is now a `-V/--version` flag to print the version number.
+
 ### Changes ###
 
 - Setter and getter functions now render as a list.

@@ -4,9 +4,12 @@ document.
 import json
 import logging
 import os
+import sys
 from argparse import Namespace
 from itertools import repeat
 from typing import List
+
+import pkg_resources
 
 from .modules import command_line
 from .modules.config import LOG_LEVELS, LOGGER
@@ -17,6 +20,11 @@ from .modules.make_markdown import MarkdownDocument
 
 def main():
     args: Namespace = command_line.parse()
+
+    if args.version:
+        print(pkg_resources.get_distribution("gdscript-docs-maker").version)
+        sys.exit()
+
     logging.basicConfig(level=LOG_LEVELS[min(args.verbose, len(LOG_LEVELS) - 1)])
     LOGGER.debug("Output format: {}".format(args.format))
     json_files: List[str] = [f for f in args.files if f.lower().endswith(".json")]
