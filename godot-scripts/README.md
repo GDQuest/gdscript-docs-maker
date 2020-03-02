@@ -16,7 +16,7 @@ generate_reference path\to\project project-name
 ```
 - **Unix**
 ```bash
-sh generate_reference.sh path/to/project project-name
+./generate_reference path/to/project project-name
 ```
 
 - The first parameter should be a path to a directory that contains a `project.godot` file.

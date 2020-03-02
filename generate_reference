@@ -7,7 +7,7 @@ echo_help() {
     echo "
 Generate a code reference from GDScript
 Usage:
-generate_reference.sh $project_directory (optional)$output_directory
+generate_reference $project_directory (optional)$output_directory
 
 Arguments:
 

@@ -75,13 +75,13 @@ We wrote two shell scripts to automate the steps in generating a code reference:
 Use either of them to quickly generate your code reference:
 
 ```bash
-generate_reference.sh
+generate_reference
 
 Generate a code reference from GDScript.
 
 Usage:
 
-generate_reference.sh $project_directory (optional)$output_directory
+generate_reference $project_directory (optional)$output_directory
 
 Arguments:
 
@@ -99,7 +99,7 @@ You need `godot` to be available on the system PATH.
 
 ## Hugo output ##
 
-You can output markdown files for [hugo](https://gohugo.io/), the static website engine. 
+You can output markdown files for [hugo](https://gohugo.io/), the static website engine.
 
 To do so, call GDScript docs maker with the `--format hugo` option. You can use two extra flags with this:
 
@@ -111,7 +111,7 @@ To do so, call GDScript docs maker with the `--format hugo` option. You can use 
 Here's how I generate the Godot Steering Toolkit's documentation. This command outputs the class reference straight into the website:
 
 ```bash
-python3 -m gdscript_docs_maker $HOME/Repositories/godot-steering-toolkit/project/reference.json --format hugo --author razoric --path $HOME/Repositories/website/content/docs/godot-steering-toolkit/reference/classes/ 
+python3 -m gdscript_docs_maker $HOME/Repositories/godot-steering-toolkit/project/reference.json --format hugo --author razoric --path $HOME/Repositories/website/content/docs/godot-steering-toolkit/reference/classes/
 ```
 
 ## The manual way ##
@@ -152,4 +152,3 @@ The program takes a list of JSON files. For example, we generate the code refere
 ```fish
 python -m gdscript-docs-maker ~/Repositories/godot-steering-toolkit/src/reference.json
 ```
-
