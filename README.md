@@ -70,7 +70,7 @@ Your docstrings can be as long as you want.
 
 ### Generating the markdown files ###
 
-We wrote two shell scripts to automate the steps in generating a code reference: `./generate_reference.sh` for Linux or MacOS, and `./generate_reference.bat` for Windows.
+We wrote two shell scripts to automate the steps in generating a code reference: `./generate_reference` for Linux or MacOS, and `./generate_reference.bat` for Windows.
 
 Use either of them to quickly generate your code reference:
 
