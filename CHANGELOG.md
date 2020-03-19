@@ -20,6 +20,10 @@ This document lists new features, improvements, changes, and bug fixes in every 
   `./get_reference`
 - Setter and getter functions now render as a bullet-point list with the member variable they belong to.
 
+### Changes ###
+
+- Headings now generate only with leading hashes `#` instead of being wrapped in hashes.
+
 ### Bug fixes ###
 
 - Fixed an error when using the `--format hugo` option.

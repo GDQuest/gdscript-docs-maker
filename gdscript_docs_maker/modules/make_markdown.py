@@ -51,7 +51,7 @@ def wrap_in_newlines(markdown: List[str] = []) -> List[str]:
 def make_heading(line: str, level: int = 1) -> List[str]:
     """Returns the line as a markdown heading, surrounded by two empty lines."""
     hashes = "#" * level
-    return ["", " ".join([hashes, escape_markdown(line), hashes]), ""]
+    return ["", " ".join([hashes, escape_markdown(line)]), ""]
 
 
 def escape_markdown(text: str) -> str:
