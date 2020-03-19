@@ -1,55 +1,50 @@
 #!/usr/bin/env sh
 
 project_directory="$1"
-output_directory="$2"
+output_directory=${2:="export"}
 
 echo_help() {
-    echo "
-Generate a code reference from GDScript
-Usage:
-generate_reference $project_directory (optional)$output_directory
+	echo '
+    Generate a code reference from GDScript
+    Usage:
+    generate_reference $project_directory [$output_directory]
 
-Arguments:
+    Arguments:
 
-$project_directory -- path to your Godot project directory.
-This directory or one of its subdirectories should contain a
-project.godot file.
+    $project_directory -- path to your Godot project directory.
+    This directory or one of its subdirectories should contain a
+    project.godot file.
 
-$output_directory -- directory path to output the documentation into.
+    $output_directory -- directory path to output the documentation into.
 
-Flags:
+    Flags:
 
--h/--help -- Display this help message.
-"
-    exit 0
+    -h/--help -- Display this help message.
+    '
+	exit 0
 }
 
-if [ "$1" = "-h" ]
-then echo_help
-fi
-if [ "$1" = "--help" ]
-then echo_help
-fi
-if [ "$1" = "help" ]
-then echo_help
-fi
+case $1 in
+"-h") echo_help ;;
+"--help") echo_help ;;
+"help") echo_help ;;
+esac
 
 # Testing input parameters
-if [ -z "$project_directory" ]
-then echo Missing first parameter: project_directory
-   exit 1
+if [ -z "$project_directory" ]; then
+	echo "Missing first parameter: project_directory."
+	exit 1
 fi
-if ! test -d "$project_directory"
-then echo "Directory $project_directory does not exist, exiting."
-     exit 1
+
+if ! test -d "$project_directory"; then
+	echo "Directory $project_directory does not exist, exiting."
+	exit 1
 fi
+
 godot_project_file=$(find "$project_directory" -iname project.godot -print -quit)
-if ! test -f "$godot_project_file"
-then echo "Could not find a project.godot file in $project_directory. This program needs a Godot project to work."
-     exit 1
-fi
-if [ -z "$output_directory" ]
-then output_directory="dist"
+if ! test -f "$godot_project_file"; then
+	echo "Could not find a project.godot file in $project_directory. This program needs a Godot project to work."
+	exit 1
 fi
 
 # Generate reference JSON data from Godot
@@ -60,12 +55,13 @@ gdscript_2="godot-scripts/Collector.gd"
 cp -v $gdscript_1 "$godot_project_dir"
 cp -v $gdscript_2 "$godot_project_dir"
 
-echo Generating reference...
-godot3.2 --editor --quit --script --no-window --path "$godot_project_dir" ReferenceCollectorCLI.gd > /dev/null
-echo Done.
-if ! test -f "$godot_project_dir/reference.json"
-then echo There was an error generating the reference from Godot.
-     exit 1
+echo "Generating reference..."
+godot3.2 --editor --quit --script --no-window --path "$godot_project_dir" ReferenceCollectorCLI.gd >/dev/null
+echo "Done."
+
+if ! test -f "$godot_project_dir/reference.json"; then
+	echo "There was an error generating the reference from Godot. The file $godot_project_dir/reference.json was not found."
+	exit 1
 fi
 
 rm -v "$godot_project_dir/$(basename $gdscript_1)"
@@ -73,5 +69,5 @@ rm -v "$godot_project_dir/$(basename $gdscript_2)"
 
 # Generate markdown files
 echo "Generating markdown files in $output_directory"
-if ! test -d "$output_directory"; then mkdir -v "$output_directory"; fi
-python3 -m gdscript_docs_maker "$($godot_project_dir)/reference.json"
+! test -d "$output_directory" && mkdir -v "$output_directory"
+python3 -m gdscript_docs_maker "$godot_project_dir/reference.json" --path $output_directory
