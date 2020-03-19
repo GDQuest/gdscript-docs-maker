@@ -2,15 +2,23 @@
 
 This document lists new features, improvements, changes, and bug fixes in every GDScript docs maker release.
 
-## GDScript Docs Maker 1.3.1 ##
+## GDScript Docs Maker 1.4.0 ##
+
+### New Features ###
+
+- Added support for inner classes.
+  - _Known limitation: the program only supports one nesting level at the moment. This is in part
+    because by writing them recursively, we would not have enough heading levels (web pages support
+    6, we are already using 5). Also, we haven't found a project that used that GDScript feature
+    yet, nesting sub-classes._
+- The shell program `get_reference` now supports command line flags.
 
 ### Improvements ###
 
 - There is now a `-V/--version` flag to print the version number.
-
-### Changes ###
-
-- Setter and getter functions now render as a list.
+- Improved the shell program `get_reference`'s code to better report errors and work by calling
+  `./get_reference`
+- Setter and getter functions now render as a bullet-point list with the member variable they belong to.
 
 ### Bug fixes ###
 
