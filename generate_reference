@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 project_directory="$1"
-output_directory=${2:="export"}
+output_directory=${2:-"export"}
 
 echo_help() {
 	echo '
