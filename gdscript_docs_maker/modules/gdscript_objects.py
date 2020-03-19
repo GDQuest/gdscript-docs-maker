@@ -242,6 +242,7 @@ class GDScriptClass:
     members: List[Member]
     signals: List[Signal]
     enums: List[Enumeration]
+    sub_classes: List["GDScriptClass"]
 
     def __post_init__(self):
         description, self.metadata = extract_metadata(self.description)
@@ -269,6 +270,7 @@ class GDScriptClass:
                 for entry in data["constants"]
                 if entry["data_type"] == "Dictionary"
             ],
+            [GDScriptClass.from_dict(data) for data in data["sub_classes"]],
         )
 
     def get_extends_tree(self, classes: "GDScriptClasses") -> List[str]:
