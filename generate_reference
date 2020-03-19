@@ -56,7 +56,7 @@ cp -v $gdscript_1 "$godot_project_dir"
 cp -v $gdscript_2 "$godot_project_dir"
 
 echo "Generating reference..."
-godot3.2 --editor --quit --script --no-window --path "$godot_project_dir" ReferenceCollectorCLI.gd >/dev/null
+godot --editor --quit --script --no-window --path "$godot_project_dir" ReferenceCollectorCLI.gd >/dev/null
 echo "Done."
 
 if ! test -f "$godot_project_dir/reference.json"; then
