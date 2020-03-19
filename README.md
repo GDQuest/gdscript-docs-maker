@@ -75,27 +75,23 @@ We wrote two shell scripts to automate the steps in generating a code reference:
 Use either of them to quickly generate your code reference:
 
 ```bash
-generate_reference
-
-Generate a code reference from GDScript.
-
+Generate a code reference from GDScript
 Usage:
+generate_reference $project_directory [options]
 
-generate_reference $project_directory (optional)$output_directory
-
-Arguments:
+Required arguments:
 
 $project_directory -- path to your Godot project directory.
 This directory or one of its subdirectories should contain a
 project.godot file.
-$output_directory -- directory path to output the documentation into.
 
 Flags:
 
--h/--help -- Display this help message.
+-h/--help             -- Display this help message.
+-o/--output-directory -- directory path to output the documentation into.
 ```
 
-You need `godot` to be available on the system PATH.
+You need `godot` to be available on the [system PATH variable](https://en.wikipedia.org/wiki/PATH_(variable)).
 
 ## Hugo output ##
 

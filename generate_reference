@@ -1,37 +1,53 @@
 #!/usr/bin/env sh
 
 project_directory="$1"
-output_directory=${2:-"export"}
+output_directory="export"
 
 echo_help() {
 	echo '
     Generate a code reference from GDScript
     Usage:
-    generate_reference $project_directory [$output_directory]
+    generate_reference $project_directory [options]
 
-    Arguments:
+    Required arguments:
 
     $project_directory -- path to your Godot project directory.
     This directory or one of its subdirectories should contain a
     project.godot file.
 
-    $output_directory -- directory path to output the documentation into.
-
     Flags:
 
-    -h/--help -- Display this help message.
+    -h/--help             -- Display this help message.
+    -o/--output-directory -- directory path to output the documentation into.
     '
 	exit 0
 }
 
-case $1 in
-"-h") echo_help ;;
-"--help") echo_help ;;
-"help") echo_help ;;
-esac
+arguments=$(getopt --name "generate_reference" -o "h,o:" -l "help,output-directory:" -- "$@")
+eval set -- "$arguments"
+while true; do
+	case "$1" in
+	-h | --help)
+		help
+		shift
+		;;
+	-o | --output-directory)
+		output_directory=$2
+		shift 2
+		;;
+	--)
+		shift
+		break
+		;;
+	*)
+		echo "Missing arguments. Try 'generate_reference --help' for more information"
+		exit 1
+		;;
+	esac
+done
 
 # Testing input parameters
-if [ -z "$project_directory" ]; then
+if test -z "$project_directory"; then
 	echo "Missing first parameter: project_directory."
 	exit 1
 fi
@@ -55,8 +71,9 @@ gdscript_2="godot-scripts/Collector.gd"
 cp -v $gdscript_1 "$godot_project_dir"
 cp -v $gdscript_2 "$godot_project_dir"
 
-echo "Generating reference..."
+echo "Generating reference json data..."
 godot --editor --quit --script --no-window --path "$godot_project_dir" ReferenceCollectorCLI.gd >/dev/null
+test $? -gt 0 && echo "There was an error running 'godot', exiting." && exit 1
 echo "Done."
 
 if ! test -f "$godot_project_dir/reference.json"; then
