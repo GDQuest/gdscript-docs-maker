@@ -9,12 +9,7 @@ from typing import List
 from . import hugo
 from .command_line import OutputFormats
 from .config import LOGGER
-from .gdscript_objects import (
-    Element,
-    GDScriptClass,
-    GDScriptClasses,
-    ProjectInfo,
-)
+from .gdscript_objects import Element, GDScriptClass, GDScriptClasses, ProjectInfo
 from .hugo import HugoFrontMatter
 from .make_markdown import (
     MarkdownDocument,
@@ -80,16 +75,30 @@ def _as_markdown(
     description = _replace_references(classes, gdscript, gdscript.description)
     content += [*MarkdownSection("Description", 2, [description]).as_text()]
 
-    for attribute, title in [("members", "Properties"), ("functions", "Functions")]:
-        summary = _write_summary(gdscript, attribute)
-        if not summary:
-            continue
-        content += MarkdownSection(title, 2, summary).as_text()
-
+    content += _write_class(classes, gdscript, output_format, 2)
     if gdscript.signals:
         content += MarkdownSection(
             "Signals", 2, _write_signals(classes, gdscript, output_format)
         ).as_text()
+
+    if gdscript.sub_classes:
+        content += make_heading("Sub-classes", 2)
+    for cls in gdscript.sub_classes:
+        content += _write_class(classes, cls, output_format, 3, True)
+
+    return MarkdownDocument(gdscript.name, content)
+
+
+def _write_class(
+    classes: GDScriptClasses,
+    gdscript: GDScriptClass,
+    output_format: OutputFormats,
+    heading_level: int,
+    is_inner_class: bool = False,
+) -> List[str]:
+    markdown: List[str] = []
+    if is_inner_class:
+        markdown += make_heading(gdscript.name, heading_level)
     for attribute, title in [
         ("enums", "Enumerations"),
         ("members", "Property Descriptions"),
@@ -97,11 +106,12 @@ def _as_markdown(
     ]:
         if not getattr(gdscript, attribute):
             continue
-        content += MarkdownSection(
-            title, 2, _write(attribute, classes, gdscript, output_format)
+        markdown += MarkdownSection(
+            title,
+            heading_level + 1 if is_inner_class else heading_level,
+            _write(attribute, classes, gdscript, output_format),
         ).as_text()
-
-    return MarkdownDocument(gdscript.name, content)
+    return markdown
 
 
 def _write_summary(gdscript: GDScriptClass, key: str) -> List[str]:
@@ -117,13 +127,14 @@ def _write(
     classes: GDScriptClasses,
     gdscript: GDScriptClass,
     output_format: OutputFormats,
+    heading_level: int = 3,
 ) -> List[str]:
     assert hasattr(gdscript, attribute)
 
     markdown: List[str] = []
     for element in getattr(gdscript, attribute):
         # assert element is Element
-        markdown.extend(make_heading(element.get_heading_as_string(), 3))
+        markdown.extend(make_heading(element.get_heading_as_string(), heading_level))
         if output_format == OutputFormats.HUGO:
             markdown.extend([hugo.highlight_code(element.signature), ""])
         else:
