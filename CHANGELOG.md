@@ -12,6 +12,8 @@ This document lists new features, improvements, changes, and bug fixes in every 
     6, we are already using 5). Also, we haven't found a project that used that GDScript feature
     yet, nesting sub-classes._
 - The shell program `get_reference` now supports command line flags.
+- You can specify directories of the Godot project to parse with `get_reference` and the
+  `-d/--directory` option.
 
 ### Improvements ###
 
