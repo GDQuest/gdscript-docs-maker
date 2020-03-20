@@ -2,6 +2,7 @@
 
 project_directory="$1"
 output_directory="export"
+directories_override=""
 
 echo_help() {
 	echo '
@@ -15,15 +16,17 @@ echo_help() {
     This directory or one of its subdirectories should contain a
     project.godot file.
 
-    Flags:
+    Options:
 
     -h/--help             -- Display this help message.
     -o/--output-directory -- directory path to output the documentation into.
+    -d/--directory        -- Directory to find files and generate the code reference in the Godot
+     project. You can use the option multiple times.
     '
 	exit 0
 }
 
-arguments=$(getopt --name "generate_reference" -o "h,o:" -l "help,output-directory:" -- "$@")
+arguments=$(getopt --name "generate_reference" -o "h,o:,d:" -l "help,output-directory:,directories:" -- "$@")
 eval set -- "$arguments"
 while true; do
 	case "$1" in
@@ -33,6 +36,10 @@ while true; do
 		;;
 	-o | --output-directory)
 		output_directory=$2
+		shift 2
+		;;
+	-d | --directory)
+		directories_override="$directories_override $2"
 		shift 2
 		;;
 	--)
@@ -65,11 +72,19 @@ fi
 
 # Generate reference JSON data from Godot
 godot_project_dir=$(dirname "$godot_project_file")
-gdscript_1="godot-scripts/ReferenceCollectorCLI.gd"
-gdscript_2="godot-scripts/Collector.gd"
+path_ref_collector="godot-scripts/ReferenceCollectorCLI.gd"
+path_collector="godot-scripts/Collector.gd"
 
-cp -v $gdscript_1 "$godot_project_dir"
-cp -v $gdscript_2 "$godot_project_dir"
+# Overrides the content of the directories variable in ReferenceCollectorCLI.gd if we got --directory arguments
+file_ref_collector=$(mktemp)
+cat $path_ref_collector >$file_ref_collector
+if test $directories_override != ""; then
+	args=$(echo $directories_override | sed -r 's/([-._a-zA-Z0-9]+)/"\1",/g' | sed -r 's/,$//')
+	sed -ri "s/^var directories.+/var directories := [$args]/" $file_ref_collector
+fi
+
+cp -v $file_ref_collector "$godot_project_dir"
+cp -v $path_collector "$godot_project_dir"
 
 echo "Generating reference json data..."
 godot --editor --quit --script --no-window --path "$godot_project_dir" ReferenceCollectorCLI.gd >/dev/null
@@ -82,9 +97,10 @@ if ! test -f "$godot_project_dir/reference.json"; then
 fi
 
 rm -v "$godot_project_dir/$(basename $gdscript_1)"
-rm -v "$godot_project_dir/$(basename $gdscript_2)"
+rm -v "$godot_project_dir/$(basename $path_collector)"
 
 # Generate markdown files
 echo "Generating markdown files in $output_directory"
 ! test -d "$output_directory" && mkdir -v "$output_directory"
+
 python3 -m gdscript_docs_maker "$godot_project_dir/reference.json" --path $output_directory
