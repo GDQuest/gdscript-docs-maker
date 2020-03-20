@@ -31,6 +31,7 @@ This document lists new features, improvements, changes, and bug fixes in every 
 - Fixed an error when using the `--format hugo` option.
 - Added the relative "../" to links to Fixed links leading to 404 pages.
 - Fixed table for setters and getters rendering as plain text with some markdown parsers.
+- Fixed function call error in `ReferenceCollector.gd`.
 
 ## GDScript Docs Maker 1.3.0 ##
 
