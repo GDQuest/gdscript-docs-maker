@@ -88,7 +88,10 @@ cp -v $path_collector "$godot_project_dir"
 
 echo "Generating reference json data..."
 godot --editor --quit --script --no-window --path "$godot_project_dir" ReferenceCollectorCLI.gd >/dev/null
-test $? -gt 0 && echo "There was an error running 'godot', exiting." && exit 1
+test $? -gt 0 && echo "There was an error running 'godot'.
+The program 'godot' must be available on the system '\$PATH' variable for this program to work.
+For more information, see https://en.wikipedia.org/wiki/PATH_(variable).
+Exiting." && exit 1
 echo "Done."
 
 if ! test -f "$godot_project_dir/reference.json"; then
