@@ -83,7 +83,7 @@ if test $directories_override != ""; then
 	sed -ri "s/^var directories.+/var directories := [$args]/" $file_ref_collector
 fi
 
-cp -v $file_ref_collector "$godot_project_dir"
+cp -v $file_ref_collector "$godot_project_dir/$(basename $path_ref_collector)"
 cp -v $path_collector "$godot_project_dir"
 
 echo "Generating reference json data..."
@@ -96,7 +96,7 @@ if ! test -f "$godot_project_dir/reference.json"; then
 	exit 1
 fi
 
-rm -v "$godot_project_dir/$(basename $gdscript_1)"
+rm -v "$godot_project_dir/$(basename $path_ref_collector)"
 rm -v "$godot_project_dir/$(basename $path_collector)"
 
 # Generate markdown files
