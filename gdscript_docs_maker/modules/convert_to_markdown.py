@@ -72,8 +72,8 @@ def _as_markdown(
         extends_list: List[str] = gdscript.get_extends_tree(classes)
         extends_links = [make_link(entry, "../" + entry) for entry in extends_list]
         content += [make_bold("Extends:") + " " + " < ".join(extends_links)]
-    description = _replace_references(classes, gdscript, gdscript.description)
-    content += [*MarkdownSection("Description", 2, [description]).as_text()]
+        description = _replace_references(classes, gdscript, gdscript.description)
+        content += [*MarkdownSection("Description", 2, [description]).as_text()]
 
     content += _write_class(classes, gdscript, output_format, 2)
     if gdscript.signals:
@@ -139,10 +139,12 @@ def _write(
             markdown.extend([hugo.highlight_code(element.signature), ""])
         else:
             markdown.extend([make_code_block(element.signature), ""])
-        markdown.extend(element.get_unique_attributes_as_markdown())
-        markdown.append("")
-        description: str = _replace_references(classes, gdscript, element.description)
-        markdown.append(description)
+            markdown.extend(element.get_unique_attributes_as_markdown())
+            markdown.append("")
+            description: str = _replace_references(
+                classes, gdscript, element.description
+            )
+            markdown.append(description)
 
     return markdown
 
@@ -195,7 +197,7 @@ def _replace_references(
     classes: GDScriptClasses, gdscript: GDScriptClass, description: str
 ) -> str:
     """Finds and replaces references to other classes or methods in the
-`description`."""
+    `description`."""
     ERROR_MESSAGES = {
         "class": "Class {} not found in the class index.",
         "member": "Symbol {} not found in {}. The name might be incorrect.",

@@ -2,11 +2,13 @@
 """
 import itertools
 import operator
+import re
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Tuple
 
 from .make_markdown import make_bold, make_code_inline, make_list, surround_with_html
+from .utils import build_re_pattern
 
 BUILTIN_VIRTUAL_CALLBACKS = [
     "_process",
@@ -52,16 +54,20 @@ Metadata should be of the form key: value, e.g. category: Category Name
 
     lines: List[str] = description.split("\n")
     description_trimmed: List[str] = []
-    for index, line in enumerate(lines):
+
+    pattern_tags = build_re_pattern("tags")
+    pattern_category = build_re_pattern("category")
+
+    for _, line in enumerate(lines):
         line_stripped: str = line.strip().lower()
 
-        if line_stripped.startswith("tags:"):
-            tags = line[line.find(":") + 1 :].split(",")
+        match_tags = re.match(pattern_tags, line_stripped)
+        match_category = re.match(pattern_category, line_stripped)
+        if match_tags:
+            tags = match_tags.group(1).split(",")
             tags = list(map(lambda t: t.strip(), tags))
-            continue
-        elif line_stripped.startswith("category:"):
-            category = line[line.find(":") + 1 :].strip()
-            continue
+        elif match_category:
+            category = match_category.group(1)
         else:
             description_trimmed.append(line.strip())
 
@@ -269,6 +275,7 @@ class GDScriptClass:
                 Enumeration.from_dict(entry)
                 for entry in data["constants"]
                 if entry["data_type"] == "Dictionary"
+                and not entry["name"].startswith("_")
             ],
             [GDScriptClass.from_dict(data) for data in data["sub_classes"]],
         )
