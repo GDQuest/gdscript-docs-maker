@@ -135,16 +135,11 @@ def _write(
     for element in getattr(gdscript, attribute):
         # assert element is Element
         markdown.extend(make_heading(element.get_heading_as_string(), heading_level))
-        if output_format == OutputFormats.HUGO:
-            markdown.extend([hugo.highlight_code(element.signature), ""])
-        else:
-            markdown.extend([make_code_block(element.signature), ""])
-            markdown.extend(element.get_unique_attributes_as_markdown())
-            markdown.append("")
-            description: str = _replace_references(
-                classes, gdscript, element.description
-            )
-            markdown.append(description)
+        markdown.extend([make_code_block(element.signature), ""])
+        markdown.extend(element.get_unique_attributes_as_markdown())
+        markdown.append("")
+        description: str = _replace_references(classes, gdscript, element.description)
+        markdown.append(description)
 
     return markdown
 

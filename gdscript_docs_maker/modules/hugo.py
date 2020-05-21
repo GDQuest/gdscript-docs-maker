@@ -48,11 +48,6 @@ FRONT_MATTER_DEFAULT: HugoFrontMatter = HugoFrontMatter(
 )
 
 
-def highlight_code(content: str, language: str = "gdscript") -> str:
-    """Returns a {{< highlight >}} shortcode as a string."""
-    return make_shortcode(content, "highlight", language)
-
-
 def make_relref(target_document: str, language: str = "gdscript") -> str:
     """Returns a {{< relref >}} shortcode as a string."""
     return make_shortcode(target_document, "relref")
