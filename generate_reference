@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
+set -x
 
 project_directory="$1"
 output_directory="export"
@@ -20,8 +21,15 @@ echo_help() {
 
     -h/--help             -- Display this help message.
     -o/--output-directory -- directory path to output the documentation into.
-    -d/--directory        -- Directory to find files and generate the code reference in the Godot
-     project. You can use the option multiple times.
+    -d/--directory        -- Name of a directory to find files and generate the code reference in the Godot
+     project. You can use the option multiple times to generate a reference for multiple directories.
+
+    Usage example:
+
+    generate_reference ~/Repositories/other/nakama-godot/project/ -o export-nakama -d addons
+
+    This command walks files in the res://addons directory of the Godot Nakama project, and converts it
+    to markdown files output in ./export-nakama.
     '
 	exit 0
 }
