@@ -31,7 +31,7 @@ eval set -- "$arguments"
 while true; do
 	case "$1" in
 	-h | --help)
-		help
+        echo_help
 		shift
 		;;
 	-o | --output-directory)
