@@ -5,7 +5,7 @@ project_directory="$1"
 output_directory="export"
 directories_override=""
 format="markdown"
-author="developper"
+author="developer"
 
 echo_help() {
 	echo '
@@ -24,8 +24,8 @@ echo_help() {
     -h/--help             -- Display this help message.
     -o/--output-directory -- directory path to output the documentation into.
     -d/--directory        -- Name of a directory to find files and generate the code reference in the Godot
-    -f/--format        -- File format, default is markdown, but you can indicate hugo
-    -a/--author        -- Author which will writen in markdown file for hugo format
+    -f/--format           -- Either `markdown` or `hugo`. If `hugo`, the output document includes a TOML front-matter at the top. Default: `markdown`.
+    -a/--author           -- If --format is `hugo`, controls the author property in the TOML front-matter.
 
      project. You can use the option multiple times to generate a reference for multiple directories.
 
