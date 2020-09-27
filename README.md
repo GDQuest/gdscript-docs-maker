@@ -101,6 +101,8 @@ Flags:
 
 -h/--help             -- Display this help message.
 -o/--output-directory -- directory path to output the documentation into.
+-f/--format           -- Either `markdown` or `hugo`. If `hugo`, the output document includes a TOML front-matter at the top. Default: `markdown`.
+-a/--author           -- If --format is `hugo`, controls the author property in the TOML front-matter.
 ```
 
 To use them:
