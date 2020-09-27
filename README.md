@@ -101,6 +101,8 @@ Flags:
 
 -h/--help             -- Display this help message.
 -o/--output-directory -- directory path to output the documentation into.
+-f/--format        -- File format, default is markdown, but you can indicate hugo
+-a/--author        -- Author which will writen in markdown file for hugo format
 ```
 
 To use them:
