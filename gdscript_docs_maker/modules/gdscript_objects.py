@@ -215,9 +215,9 @@ class Member(Element):
 
     def get_unique_attributes_as_markdown(self) -> List[str]:
         setget: List[str] = []
-        if self.setter:
+        if self.setter and not self.setter.startswith("_"):
             setget.append(make_bold("Setter") + ": " + make_code_inline(self.setter))
-        if self.getter:
+        if self.getter and not self.getter.startswith("_"):
             setget.append(make_bold("Getter") + ": " + make_code_inline(self.getter))
         setget = make_list(setget)
         if len(setget) > 0:
