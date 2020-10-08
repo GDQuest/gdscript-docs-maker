@@ -350,7 +350,7 @@ inclusion, and private methods."""
         _, metadata = extract_metadata(entry["description"])
 
         is_virtual: bool = "virtual" in metadata.tags and not is_static
-        is_private: bool = name.startswith("_") and not is_virtual
+        is_private: bool = name.startswith("_") and not is_virtual and name != TYPE_CONSTRUCTOR
         if is_private:
             continue
 
