@@ -101,6 +101,7 @@ def _write_class(
         markdown += make_heading(gdscript.name, heading_level)
     for attribute, title in [
         ("enums", "Enumerations"),
+        ("constants", "Constants Descriptions"),
         ("members", "Property Descriptions"),
         ("functions", "Method Descriptions"),
     ]:

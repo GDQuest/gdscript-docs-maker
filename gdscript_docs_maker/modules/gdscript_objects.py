@@ -237,6 +237,25 @@ class Member(Element):
             data["getter"],
         )
 
+@dataclass
+class Constant(Element):
+    """Represents a constant"""
+
+    type: str
+    default_value: str
+
+    def summarize(self) -> List[str]:
+        return [self.type, self.name]
+
+    @staticmethod
+    def from_dict(data: dict) -> "Constant":
+        return Constant(
+            data["signature"],
+            data["name"],
+            data["description"],
+            data["data_type"],
+            data["value"],
+        )
 
 @dataclass
 class GDScriptClass:
@@ -246,6 +265,7 @@ class GDScriptClass:
     path: str
     functions: List[Function]
     members: List[Member]
+    constants: List[Constant]
     signals: List[Signal]
     enums: List[Enumeration]
     sub_classes: List["GDScriptClass"]
@@ -270,6 +290,7 @@ class GDScriptClass:
             _get_functions(data["methods"])
             + _get_functions(data["static_functions"], is_static=True),
             _get_members(data["members"]),
+            _get_constants(data["constants"]),
             _get_signals(data["signals"]),
             [
                 Enumeration.from_dict(entry)
@@ -365,4 +386,9 @@ inclusion, and private methods."""
 def _get_members(data: List[dict]) -> List[Member]:
     return [
         Member.from_dict(entry) for entry in data if not entry["name"].startswith("_")
+    ]
+
+def _get_constants(data: List[dict]) -> List[Constant]:
+    return [
+        Constant.from_dict(entry) for entry in data if not entry["name"].startswith("_") and not entry["data_type"] == "Dictionary"
     ]
