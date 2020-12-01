@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass
 from enum import Enum
 from typing import List, Tuple
+from operator import itemgetter
 
 from .make_markdown import make_bold, make_code_inline, make_list, surround_with_html
 from .utils import build_re_pattern
@@ -389,6 +390,7 @@ def _get_members(data: List[dict]) -> List[Member]:
     ]
 
 def _get_constants(data: List[dict]) -> List[Constant]:
+    sorted_data = sorted(data, key=itemgetter('name'))
     return [
-        Constant.from_dict(entry) for entry in data if not entry["name"].startswith("_") and not entry["data_type"] == "Dictionary"
+        Constant.from_dict(entry) for entry in sorted_data if not entry["name"].startswith("_") and not entry["data_type"] == "Dictionary"
     ]
