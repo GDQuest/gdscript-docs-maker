@@ -69,7 +69,7 @@ Metadata should be of the form key: value, e.g. category: Category Name
         elif match_category:
             category = match_category.group(1)
         else:
-            description_trimmed.append(line.strip())
+            description_trimmed.append(re.sub(r'^ ([^\s])',r'\g<1>',line))
 
     metadata: Metadata = Metadata(tags, category)
     return "\n".join(description_trimmed), metadata
