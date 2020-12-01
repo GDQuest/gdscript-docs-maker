@@ -297,6 +297,7 @@ class GDScriptClass:
                 Enumeration.from_dict(entry)
                 for entry in data["constants"]
                 if entry["data_type"] == "Dictionary"
+                and all(isinstance(v, int) for v in entry["value"].values())
                 and not entry["name"].startswith("_")
             ],
             [GDScriptClass.from_dict(data) for data in data["sub_classes"]],
@@ -392,5 +393,9 @@ def _get_members(data: List[dict]) -> List[Member]:
 def _get_constants(data: List[dict]) -> List[Constant]:
     sorted_data = sorted(data, key=itemgetter('name'))
     return [
-        Constant.from_dict(entry) for entry in sorted_data if not entry["name"].startswith("_") and not entry["data_type"] == "Dictionary"
+        Constant.from_dict(entry) for entry in sorted_data
+        if not entry["name"].startswith("_")
+        and (not entry["data_type"] == "Dictionary"
+            or (entry["data_type"] == "Dictionary"
+                and not all(isinstance(v, int) for v in entry["value"].values())))
     ]
