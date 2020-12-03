@@ -5,8 +5,8 @@ import operator
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Tuple
 from operator import itemgetter
+from typing import List, Tuple
 
 from .make_markdown import make_bold, make_code_inline, make_list, surround_with_html
 from .utils import build_re_pattern
@@ -238,6 +238,7 @@ class Member(Element):
             data["getter"],
         )
 
+
 @dataclass
 class Constant(Element):
     """Represents a constant"""
@@ -257,6 +258,7 @@ class Constant(Element):
             data["data_type"],
             data["value"],
         )
+
 
 @dataclass
 class GDScriptClass:
@@ -373,7 +375,9 @@ inclusion, and private methods."""
         _, metadata = extract_metadata(entry["description"])
 
         is_virtual: bool = "virtual" in metadata.tags and not is_static
-        is_private: bool = name.startswith("_") and not is_virtual and name != TYPE_CONSTRUCTOR
+        is_private: bool = name.startswith(
+            "_"
+        ) and not is_virtual and name != TYPE_CONSTRUCTOR
         if is_private:
             continue
 
@@ -390,12 +394,21 @@ def _get_members(data: List[dict]) -> List[Member]:
         Member.from_dict(entry) for entry in data if not entry["name"].startswith("_")
     ]
 
-def _get_constants(data: List[dict]) -> List[Constant]:
-    sorted_data = sorted(data, key=itemgetter('name'))
-    return [
-        Constant.from_dict(entry) for entry in sorted_data
-        if not entry["name"].startswith("_")
-        and (not entry["data_type"] == "Dictionary"
-            or (entry["data_type"] == "Dictionary"
-                and not all(isinstance(v, int) for v in entry["value"].values())))
-    ]
+
+def _get_constants(constants_data: List[dict]) -> List[Constant]:
+    """Filters and distinguishes constants from enums. Returns a list of """
+
+    def is_not_enum(constant):
+        """Returns `True` if the constant's source data doesn't correspond to an enum.
+        That is, if it's not a dictionary with only a list of named integers."""
+        is_enum = constant["data_type"] == "Dictionary"
+        is_enum = is_enum and all(
+            isinstance(value, int) for value in constant["value"].values()
+        )
+        return not is_enum
+
+    constants = filter(lambda c: not c["name"].startswith("_"), constants_data)
+    constants = filter(lambda c: not c["data_type"] == "Dictionary", constants)
+    constants = filter(is_not_enum, constants)
+    constants = sorted(constants, key=itemgetter("name"))
+    return list(map(lambda c: Constant.from_dict(c), constants))
