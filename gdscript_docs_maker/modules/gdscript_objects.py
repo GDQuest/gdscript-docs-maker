@@ -5,6 +5,7 @@ import operator
 import re
 from dataclasses import dataclass
 from enum import Enum
+from operator import itemgetter
 from typing import List, Tuple
 
 from .make_markdown import make_bold, make_code_inline, make_list, surround_with_html
@@ -239,6 +240,27 @@ class Member(Element):
 
 
 @dataclass
+class Constant(Element):
+    """Represents a constant"""
+
+    type: str
+    default_value: str
+
+    def summarize(self) -> List[str]:
+        return [self.type, self.name]
+
+    @staticmethod
+    def from_dict(data: dict) -> "Constant":
+        return Constant(
+            data["signature"],
+            data["name"],
+            data["description"],
+            data["data_type"],
+            data["value"],
+        )
+
+
+@dataclass
 class GDScriptClass:
     name: str
     extends: str
@@ -246,6 +268,7 @@ class GDScriptClass:
     path: str
     functions: List[Function]
     members: List[Member]
+    constants: List[Constant]
     signals: List[Signal]
     enums: List[Enumeration]
     sub_classes: List["GDScriptClass"]
@@ -270,11 +293,13 @@ class GDScriptClass:
             _get_functions(data["methods"])
             + _get_functions(data["static_functions"], is_static=True),
             _get_members(data["members"]),
+            _get_constants(data["constants"]),
             _get_signals(data["signals"]),
             [
                 Enumeration.from_dict(entry)
                 for entry in data["constants"]
                 if entry["data_type"] == "Dictionary"
+                and all(isinstance(v, int) for v in entry["value"].values())
                 and not entry["name"].startswith("_")
             ],
             [GDScriptClass.from_dict(data) for data in data["sub_classes"]],
@@ -350,7 +375,9 @@ inclusion, and private methods."""
         _, metadata = extract_metadata(entry["description"])
 
         is_virtual: bool = "virtual" in metadata.tags and not is_static
-        is_private: bool = name.startswith("_") and not is_virtual and name != TYPE_CONSTRUCTOR
+        is_private: bool = name.startswith(
+            "_"
+        ) and not is_virtual and name != TYPE_CONSTRUCTOR
         if is_private:
             continue
 
@@ -366,3 +393,22 @@ def _get_members(data: List[dict]) -> List[Member]:
     return [
         Member.from_dict(entry) for entry in data if not entry["name"].startswith("_")
     ]
+
+
+def _get_constants(constants_data: List[dict]) -> List[Constant]:
+    """Filters and distinguishes constants from enums. Returns a list of """
+
+    def is_not_enum(constant):
+        """Returns `True` if the constant's source data doesn't correspond to an enum.
+        That is, if it's not a dictionary with only a list of named integers."""
+        is_enum = constant["data_type"] == "Dictionary"
+        is_enum = is_enum and all(
+            isinstance(value, int) for value in constant["value"].values()
+        )
+        return not is_enum
+
+    constants = filter(lambda c: not c["name"].startswith("_"), constants_data)
+    constants = filter(lambda c: not c["data_type"] == "Dictionary", constants)
+    constants = filter(is_not_enum, constants)
+    constants = sorted(constants, key=itemgetter("name"))
+    return list(map(lambda c: Constant.from_dict(c), constants))
