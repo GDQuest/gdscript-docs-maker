@@ -396,7 +396,7 @@ def _get_members(data: List[dict]) -> List[Member]:
 
 
 def _get_constants(constants_data: List[dict]) -> List[Constant]:
-    """Filters and distinguishes constants from enums. Returns a list of """
+    """Filters and distinguishes constants from enums."""
 
     def is_not_enum(constant):
         """Returns `True` if the constant's source data doesn't correspond to an enum.
