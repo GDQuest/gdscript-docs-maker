@@ -2,6 +2,16 @@
 
 This document lists new features, improvements, changes, and bug fixes in every GDScript docs maker release.
 
+## GDScript Docs Maker 1.5.0
+
+### New Features
+
+- Added support for constants by @db0.
+
+### Bug fixes
+
+- Fixed descriptions eating whitespace and flattening nested lists. By @db0.
+
 ## GDScript Docs Maker 1.4.0
 
 ### New Features
