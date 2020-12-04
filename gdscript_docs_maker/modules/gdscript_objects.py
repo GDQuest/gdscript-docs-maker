@@ -408,7 +408,6 @@ def _get_constants(constants_data: List[dict]) -> List[Constant]:
         return not is_enum
 
     constants = filter(lambda c: not c["name"].startswith("_"), constants_data)
-    constants = filter(lambda c: not c["data_type"] == "Dictionary", constants)
     constants = filter(is_not_enum, constants)
     constants = sorted(constants, key=itemgetter("name"))
     return list(map(lambda c: Constant.from_dict(c), constants))
