@@ -1,5 +1,4 @@
 #!/usr/bin/env sh
-set -x
 
 project_directory="$1"
 output_directory="export"
