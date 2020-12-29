@@ -1,0 +1,4 @@
+# "make build" generated files
+build
+dist
+gdscript_docs_maker/gdscript_docs_maker.egg-info
