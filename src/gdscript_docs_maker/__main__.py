@@ -11,11 +11,11 @@ from typing import List
 
 import pkg_resources
 
-from .modules import command_line
-from .modules.config import LOG_LEVELS, LOGGER
-from .modules.convert_to_markdown import convert_to_markdown
-from .modules.gdscript_objects import GDScriptClasses, ProjectInfo
-from .modules.make_markdown import MarkdownDocument
+from . import command_line
+from .config import LOG_LEVELS, LOGGER
+from .convert_to_markdown import convert_to_markdown
+from .gdscript_objects import GDScriptClasses, ProjectInfo
+from .make_markdown import MarkdownDocument
 
 
 def main():
@@ -61,7 +61,8 @@ def main():
 
 
 def save(
-    document: MarkdownDocument, dirpath: str,
+    document: MarkdownDocument,
+    dirpath: str,
 ):
     path: str = os.path.join(dirpath, document.get_filename())
     with open(path, "w") as file_out:
