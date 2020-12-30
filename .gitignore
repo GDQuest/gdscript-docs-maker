@@ -1,4 +1,7 @@
 # "make build" generated files
 build
 dist
-gdscript_docs_maker/gdscript_docs_maker.egg-info
+src/*.egg-info
+
+# generated .md files (by generated_reference script)
+export
