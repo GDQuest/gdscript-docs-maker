@@ -2,6 +2,14 @@
 
 This document lists new features, improvements, changes, and bug fixes in every GDScript docs maker release.
 
+## GDScript Docs Maker 1.5.1
+
+### Bug fixes
+
+- Fixed `make build` setuptools build by using `src` layout
+- Fixed `pip install` installation workflow (tested locally, PyPi package needs to be updated) - Related issue: [#76](https://github.com/GDQuest/gdscript-docs-maker/issues/76)
+- Fixed `generate_reference` not finding any file when using -d option (may fix [issue #63](https://github.com/GDQuest/gdscript-docs-maker/issues/63))
+
 ## GDScript Docs Maker 1.5.0
 
 ### New Features
