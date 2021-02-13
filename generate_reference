@@ -98,7 +98,7 @@ path_collector="godot-scripts/Collector.gd"
 # Overrides the content of the directories variable in ReferenceCollectorCLI.gd if we got --directory arguments
 file_ref_collector=$(mktemp)
 cat $path_ref_collector >$file_ref_collector
-if test $directories_override != ""; then
+if test "$directories_override" != ""; then
 	args=$(echo $directories_override | sed -r 's/([-._a-zA-Z0-9]+)/"\1",/g' | sed -r 's/,$//')
 	sed -ri "s/^var directories.+/var directories := [$args]/" $file_ref_collector
 fi
