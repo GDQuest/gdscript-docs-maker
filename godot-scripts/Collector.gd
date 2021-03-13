@@ -85,6 +85,8 @@ func get_reference(files := PoolStringArray(), refresh_cache := false) -> Dictio
 		if refresh_cache:
 			workspace.parse_local_script(file)
 		var symbols: Dictionary = workspace.generate_script_api(file)
+		if symbols["name"] == "":
+			symbols["name"] = file.get_file()
 		data["classes"].append(symbols)
 	return data
 
