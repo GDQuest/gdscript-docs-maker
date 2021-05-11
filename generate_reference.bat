@@ -5,11 +5,11 @@ setlocal enabledelayedexpansion
 ::the python module on it to create markdown/hugo markdown.
 
 ::Test for godot
+
 where /q godot*
 if ERRORLEVEL 1 goto no-godot else (
    for /f "delims=" %%F in ('where godot*') do set godot=%%F
 )
-
 ::Test for python
 where /q python
 if ERRORLEVEL 1 goto no-python
@@ -31,7 +31,7 @@ if %1 == --make-index  goto help
 if %1 == --dry-run     goto help
 
 ::Check for project.godot
-set project_path=%1
+set project_path=%~1
 if not exist "%project_path%\project.godot" goto no-project
 
 ::No arguments
