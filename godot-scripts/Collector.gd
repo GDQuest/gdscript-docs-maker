@@ -72,10 +72,13 @@ func save_text(path := "", content := "") -> void:
 #
 # If `refresh_cache` is true, will refresh Godot's cache and get fresh symbols.
 func get_reference(files := PoolStringArray(), refresh_cache := false) -> Dictionary:
+	var version := "n/a"
+	if ProjectSettings.has_setting("application/config/version"):
+		version = ProjectSettings.get_setting("application/config/version")  
 	var data := {
 		name = ProjectSettings.get_setting("application/config/name"),
 		description = ProjectSettings.get_setting("application/config/description"),
-		version = ProjectSettings.get_setting("application/config/version"),
+		version = version,
 		classes = []
 	}
 	var workspace = Engine.get_singleton('GDScriptLanguageProtocol').get_workspace()
@@ -85,7 +88,7 @@ func get_reference(files := PoolStringArray(), refresh_cache := false) -> Dictio
 		if refresh_cache:
 			workspace.parse_local_script(file)
 		var symbols: Dictionary = workspace.generate_script_api(file)
-		if symbols["name"] == "":
+		if symbols.has("name") and symbols["name"] == "":
 			symbols["name"] = file.get_file()
 		data["classes"].append(symbols)
 	return data
