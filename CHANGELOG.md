@@ -7,6 +7,9 @@ This document lists new features, improvements, changes, and bug fixes in every 
 ### New Features
 
 - If a GDScript file does not use class_name, the name of that file is now used as the class name to include previously not documented files
+- Optimized `generate_reference` for stability and shellcheck
+- Optimized `Collector.gd` to fix version error message
+- Added Dockerfile
 
 ## GDScript Docs Maker 1.5.1
 
