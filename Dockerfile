@@ -1,4 +1,4 @@
-FROM barichello/godot-ci:latest
+FROM docker.io/barichello/godot-ci:latest
 
 
 COPY . /app
