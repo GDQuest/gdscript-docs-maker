@@ -7,7 +7,7 @@ format="markdown"
 author="developer"
 
 echo_help() {
-	echo '
+	cat <<'EOT'
     Generate a code reference from GDScript
     Usage:
     generate_reference $project_directory [options]
@@ -22,8 +22,10 @@ echo_help() {
 
     -h/--help             -- Display this help message.
     -o/--output-directory -- directory path to output the documentation into.
-    -d/--directory        -- Name of a directory to find files and generate the code reference in the Godot project. You can use the option multiple times to generate a reference for multiple directories.
-    -f/--format           -- Either `markdown` or `hugo`. If `hugo`, the output document includes a TOML front-matter at the top. Default: `markdown`.
+    -d/--directory        -- Name of a directory to find files and generate the code reference in the Godot project.
+                             You can use the option multiple times to generate a reference for multiple directories.
+    -f/--format           -- Either `markdown` or `hugo`. If `hugo`, the output document includes a TOML front-matter
+                             at the top. Default: `markdown`.
     -a/--author           -- If --format is `hugo`, controls the author property in the TOML front-matter.
 
 
@@ -33,16 +35,19 @@ echo_help() {
 
     This command walks files in the res://addons directory of the Godot Nakama project, and converts it
     to markdown files output in ./export-nakama.
-    '
+EOT
 	exit 0
 }
 
+# Interpret arguments
+
 arguments=$(getopt --name "generate_reference" -o "h,o:,d:,f:,a:" -l "help,output-directory:,directories:" -- "$@")
+
 eval set -- "$arguments"
 while true; do
 	case "$1" in
 	-h | --help)
-        echo_help
+    echo_help
 		shift
 		;;
 	-o | --output-directory)
@@ -61,7 +66,6 @@ while true; do
 		author=$2
 		shift 2
 		;;
-		
 	--)
 		shift
 		break
@@ -73,7 +77,8 @@ while true; do
 	esac
 done
 
-# Testing input parameters
+echo "Checking parameters"
+
 if test -z "$project_directory"; then
 	echo "Missing first parameter: project_directory."
 	exit 1
@@ -90,40 +95,75 @@ if ! test -f "$godot_project_file"; then
 	exit 1
 fi
 
-# Generate reference JSON data from Godot
+
+
 godot_project_dir=$(dirname "$godot_project_file")
+
 path_ref_collector="godot-scripts/ReferenceCollectorCLI.gd"
 path_collector="godot-scripts/Collector.gd"
 
-# Overrides the content of the directories variable in ReferenceCollectorCLI.gd if we got --directory arguments
+# Override the content of the directories variable in ReferenceCollectorCLI.gd if we got --directory arguments
 file_ref_collector=$(mktemp)
-cat $path_ref_collector >$file_ref_collector
+cat $path_ref_collector > "$file_ref_collector"
 if test "$directories_override" != ""; then
-	args=$(echo $directories_override | sed -r 's/([-._a-zA-Z0-9]+)/"\1",/g' | sed -r 's/,$//')
-	sed -ri "s/^var directories.+/var directories := [$args]/" $file_ref_collector
+  echo "Setting directories"
+	args=$(echo "$directories_override" | sed -r 's#([-/._a-zA-Z0-9]+)#"res://\1",#g' | sed -r 's/,$//')
+	sed -ri "s#^var directories.+#var directories := [$args]#" "$file_ref_collector"
 fi
 
-cp -v $file_ref_collector "$godot_project_dir/$(basename $path_ref_collector)"
-cp -v $path_collector "$godot_project_dir"
+echo "Copying collectors to project directory"
+
+cp "$file_ref_collector" "$godot_project_dir/$(basename $path_ref_collector)" >/dev/null
+cp $path_collector "$godot_project_dir" >/dev/null
 
 echo "Generating reference json data..."
-godot --editor --quit --script --no-window --path "$godot_project_dir" ReferenceCollectorCLI.gd >/dev/null
-test $? -gt 0 && echo "There was an error running 'godot'.
+
+ERROR_LOG=$(mktemp)
+
+if ! godot --editor --quit --no-window --script ReferenceCollectorCLI.gd \
+  --path "$godot_project_dir" 2>"$ERROR_LOG" >/dev/null
+then
+  ERRORS=$(cat "$ERROR_LOG")
+  cat <<EOT
+There was an error running 'godot'.
 The program 'godot' must be available on the system '\$PATH' variable for this program to work.
 For more information, see https://en.wikipedia.org/wiki/PATH_(variable).
-Exiting." && exit 1
+
+This was the error log:
+
+$ERRORS
+EOT
+  rm "$ERROR_LOG"
+  exit 1
+fi
+
 echo "Done."
 
-if ! test -f "$godot_project_dir/reference.json"; then
+if ! [ -f "$godot_project_dir/reference.json" ]
+then
 	echo "There was an error generating the reference from Godot. The file $godot_project_dir/reference.json was not found."
 	exit 1
 fi
 
-rm -v "$godot_project_dir/$(basename $path_ref_collector)"
-rm -v "$godot_project_dir/$(basename $path_collector)"
-
-# Generate markdown files
 echo "Generating markdown files in $output_directory"
-! test -d "$output_directory" && mkdir -v "$output_directory"
 
-python3 -m gdscript_docs_maker "$godot_project_dir/reference.json" --path $output_directory --format $format --author $author
+if [ ! -d "$output_directory" ]
+then
+   mkdir -v "$output_directory" >/dev/null
+fi
+
+if ! python3 -m gdscript_docs_maker "$godot_project_dir/reference.json" --path "$output_directory" --format "$format" \
+  --author "$author" 2>"$ERROR_LOG"
+then
+  echo "Error running gdscript_docs_maker. This is the log:"
+  cat "$ERROR_LOG"
+  exit 1
+fi
+
+echo "Cleaning up..."
+rm "$ERROR_LOG" >/dev/null
+rm "$godot_project_dir/$(basename $path_ref_collector)" >/dev/null
+rm "$godot_project_dir/$(basename $path_collector)" >/dev/null
+rm "$godot_project_dir/reference.json" >/dev/null
+
+exit 0
