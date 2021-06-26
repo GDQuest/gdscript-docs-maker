@@ -1,5 +1,7 @@
 # GDScript Docs Maker
 
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/gdquest/gdscript-docs-maker) ![Docker Image Version (latest semver)](https://img.shields.io/docker/v/gdquest/gdscript-docs-maker?label=Docker%20tag&sort=semver)
+
 ![Project banner](./assets/gdscript-docs-maker-banner.svg)
 
 # Introduction
