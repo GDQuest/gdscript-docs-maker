@@ -1,30 +1,45 @@
 # GDScript Docs Maker
 
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/gdquest/gdscript-docs-maker)](https://github.com/GDQuest/gdscript-docs-maker) [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/gdquest/gdscript-docs-maker?label=Docker%20tag&sort=semver)](https://hub.docker.com/repository/docker/gdquest/gdscript-docs-maker)
+
 ![Project banner](./assets/gdscript-docs-maker-banner.svg)
 
-Docs Maker is a set of tools to convert documentation you write inside your code to an online or offline code reference in the markdown format.
+# Introduction
 
-If you make plugins or a framework for Godot, GDScript Docs Maker will help you save a lot of time documenting your code.
+GDScript Docs Maker is a set of tools to convert documentation you write inside your code to an online or offline code reference in the [markdown](https://daringfireball.net/projects/markdown/syntax) or [hugo](https://gohugo.io/) format. If you make plugins or a framework for Godot, GDScript Docs Maker will generate API reference documentation from your code.
 
 It creates documents following Godot's built-in class reference. You can see an example with our [Godot Steering Toolkit documentation](https://www.gdquest.com/docs/godot-steering-toolkit/reference/)
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 
-**Table of Contents**
-
-- [Installing](#installing)
-- [Getting Started](#getting-started)
-  - [Writing your code reference](#writing-your-code-reference)
-  - [Generating the markdown files](#generating-the-markdown-files)
-- [Hugo output](#hugo-output)
+- [Usage](#usage)
+    * [Using the container image](#using-the-container-image)
+    * [Local installation](#local-installation)
+    * [Writing your code reference](#writing-your-code-reference)
+    * [Generating the markdown files](#generating-the-markdown-files)
+    * [Hugo output](#hugo-output)
 - [The manual way](#the-manual-way)
-  - [Converting JSON](#converting-json)
+    + [Converting JSON](#converting-json)
 
 <!-- markdown-toc end -->
 
-**Note**: This program requires Godot 3.2+ and Python 3.7+ to work.
+# Usage
 
-## Installing
+GDScript Docs Maker can be either used using the official [Docker image](https://hub.docker.com/r/gdquest/gdscript-docs-maker) or by installing it locally. For the docker image, only [Docker](https://www.docker.com/get-started) is required.
+
+For the local installation, Godot 3.2+ and Python 3.7+ are required.
+
+## Using the container image
+
+To generate your API documentation, you mount the path of your game and the path of the output into the container and run it like this:
+
+```
+docker run --rm -v /my/game:/game -v /my/game/docs/api:/output gdquest/gdscript-docs-maker:latest /game -o /output
+```
+
+This will generate the API documentation in the subpath `docs/api` of your game located at `/my/game`. See below for further parameters.
+
+## Local installation
 
 You can install the GDScript Docs Maker python package with pip:
 
@@ -38,16 +53,7 @@ python -m pip install gdscript_docs_maker
 
 Although to use the shell script that simplifies creating the reference, `generate_reference`, you need to clone this repository. More on that below.
 
-## Getting Started
-
-In this section, you will learn to use the program to generate a code reference quickly.
-
-This involves two steps. You need to:
-
-1. Write docstrings inside your GDScript code.
-2. Use one of the shell programs that ships with this add-on.
-
-### Writing your code reference
+## Writing your code reference
 
 Docstring or doc-comments in GDScript don't have any special markup.
 
@@ -80,7 +86,7 @@ extends GSAISpecializedAgent
 class_name GSAIKinematicBody2DAgent
 ```
 
-### Generating the markdown files
+## Generating the markdown files
 
 We wrote two shell scripts to automate the steps in generating a code reference: `./generate_reference` for Linux or MacOS, and `./generate_reference.bat` for Windows.
 
@@ -97,12 +103,23 @@ $project_directory -- path to your Godot project directory.
 This directory or one of its subdirectories should contain a
 project.godot file.
 
-Flags:
+Options:
 
 -h/--help             -- Display this help message.
 -o/--output-directory -- directory path to output the documentation into.
--f/--format           -- Either `markdown` or `hugo`. If `hugo`, the output document includes a TOML front-matter at the top. Default: `markdown`.
+-d/--directory        -- Name of a directory to find files and generate the code reference in the Godot project.
+                         You can use the option multiple times to generate a reference for multiple directories.
+-f/--format           -- Either `markdown` or `hugo`. If `hugo`, the output document includes a TOML front-matter
+                         at the top. Default: `markdown`.
 -a/--author           -- If --format is `hugo`, controls the author property in the TOML front-matter.
+
+
+Usage example:
+
+generate_reference ~/Repositories/other/nakama-godot/project/ -o export-nakama -d addons
+
+This command walks files in the res://addons directory of the Godot Nakama project, and converts it
+to markdown files output in ./export-nakama.
 ```
 
 To use them:
@@ -127,7 +144,7 @@ Here's how I generate the Godot Steering Toolkit's documentation. This command o
 python3 -m gdscript_docs_maker $HOME/Repositories/godot-steering-toolkit/project/reference.json --format hugo --author razoric --path $HOME/Repositories/website/content/docs/godot-steering-toolkit/reference/classes/
 ```
 
-## The manual way
+# The manual way
 
 If you want to generate the JSON and convert it manually, there are three steps involved:
 
