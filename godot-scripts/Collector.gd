@@ -2,6 +2,15 @@ tool
 extends SceneTree
 # Finds and generates a code reference from gdscript files.
 
+var warnings_regex: RegEx
+
+func _init() -> void:
+	warnings_regex = RegEx.new()
+	
+	var pattern := "^\\s?(warning-ignore(-all|):\\w+|warnings-disable)\\s*$"
+	var error := warnings_regex.compile(pattern)
+	if error != OK:
+		printerr("Failed to compile '%s' to a regex pattern" % pattern)
 
 # Returns a list of file paths found in the directory.
 #
@@ -90,9 +99,30 @@ func get_reference(files := PoolStringArray(), refresh_cache := false) -> Dictio
 		var symbols: Dictionary = workspace.generate_script_api(file)
 		if symbols.has("name") and symbols["name"] == "":
 			symbols["name"] = file.get_file()
+		clean_symbols(symbols)
 		data["classes"].append(symbols)
 	return data
 
+# Takes a dictionary of code reference data and normalize it 
+# like stripping off 'warning-ignore' comments
+func clean_symbols(symbols: Dictionary) -> void:
+	if not warnings_regex.is_valid():
+		return
+	symbols["description"] = clean_description(symbols["description"])
+	for meta in ["constants", "members", "signals", "methods", "static_functions"]:
+		for metadata in symbols[meta]:
+			metadata["description"] = clean_description(metadata["description"])
+	
+	for sub_class in symbols["sub_classes"]:
+		clean_symbols(sub_class)
+
+func clean_description(description: String) -> String:
+	var lines := description.strip_edges().split("\n")
+	var clean_lines := PoolStringArray()
+	for line in lines:
+		if not warnings_regex.search(line):
+			clean_lines.append(line)
+	return clean_lines.join("\n")
 
 func print_pretty_json(reference: Dictionary) -> String:
 	return JSON.print(reference, "  ")
