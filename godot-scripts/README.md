@@ -2,7 +2,7 @@
 
 Godot, since version 3.2, has a tool to create a class reference from GDScript code, through its language server.
 
-This folder contains a tool script, `ReferenceCollector.gd`, to run directly from within your Godot projects and get the class reference as JSON using File->Run in the script editor.
+This folder contains a tool script (`ReferenceCollector.gd` for Godot 3, `ReferenceCollectorGd4.gd` for Godot 4) to run directly from within your Godot projects and get the class reference as JSON using File->Run in the script editor.
 
 You can find more detailed instructions inside the GDScript code itself.
 

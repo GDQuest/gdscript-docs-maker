@@ -57,7 +57,9 @@ Although to use the shell script that simplifies creating the reference, `genera
 
 Docstring or doc-comments in GDScript don't have any special markup.
 
-You can document classes, properties, and functions with comment blocks placed on the line before their definition:
+You can document classes, properties, and functions with comment blocks placed on the line before their definition.
+
+Example of docstrings for Godot 3:
 
 ```gdscript
 # A linear and angular amount of acceleration.
@@ -76,12 +78,31 @@ func reset() -> void:
 	angular = 0.0
 ```
 
+Example of docstrings for Godot 4:
+
+```gdscript
+## A linear and angular amount of acceleration.
+class_name GSTTargetAcceleration
+
+
+## Linear acceleration
+var linear: = Vector3.ZERO
+## Angular acceleration
+var angular: = 0.0
+
+
+## Resets the accelerations to zero
+func reset() -> void:
+	linear = Vector3.ZERO
+	angular = 0.0
+```
+
 If you need long docstrings, you can use multiple commented lines:
 
-```
-# A specialized steering agent that updates itself every frame so the user does
-# not have to using a KinematicBody2D
-# category: Specialized agents
+```gdscript
+## A specialized steering agent that updates itself every frame so the user does
+## not have to using a KinematicBody2D
+## category: Specialized agents
 extends GSAISpecializedAgent
 class_name GSAIKinematicBody2DAgent
 ```
@@ -105,13 +126,13 @@ project.godot file.
 
 Options:
 
--h/--help             -- Display this help message.
--o/--output-directory -- directory path to output the documentation into.
--d/--directory        -- Name of a directory to find files and generate the code reference in the Godot project.
-                         You can use the option multiple times to generate a reference for multiple directories.
--f/--format           -- Either `markdown` or `hugo`. If `hugo`, the output document includes a TOML front-matter
-                         at the top. Default: `markdown`.
--a/--author           -- If --format is `hugo`, controls the author property in the TOML front-matter.
+-h             -- Display this help message.
+-o             -- directory path to output the documentation into.
+-d             -- Name of a directory to find files and generate the code reference in the Godot project.
+                  You can use the option multiple times to generate a reference for multiple directories.
+-f             -- Either `markdown` or `hugo`. If `hugo`, the output document includes a TOML front-matter
+                  at the top. Default: `markdown`.
+-a             -- If -f is `hugo`, controls the author property in the TOML front-matter.
 
 
 Usage example:
@@ -131,7 +152,7 @@ To use them:
 
 You can output markdown files for [hugo](https://gohugo.io/), the static website engine.
 
-To do so, call GDScript docs maker with the `--format hugo` option. You can use two extra flags with this:
+To do so, call GDScript docs maker with the `-f hugo` option. You can use two extra flags with this:
 
 ```bash
 --date YYYY-MM-DD, the date in iso format, if you want the documents to have a date other than today. Default: datetime.date.today()
@@ -148,8 +169,10 @@ python3 -m gdscript_docs_maker $HOME/Repositories/godot-steering-toolkit/project
 
 If you want to generate the JSON and convert it manually, there are three steps involved:
 
-1. Copying the GDScript files `./godot-scripts/Collector.gd` and `./godot-scripts/ReferenceCollectorCLI.gd` or `./godot-scripts/ReferenceCollectorCLI.gd` to your Godot 3.2 project.
-2. Running the GDScript code with Godot, either from the editor (`ReferenceCollector.gd`) or by calling Godot from the command line (`ReferenceCollectorCLI.gd`).
+1. Copying the GDScript files to your Godot project:
+    - `./godot-scripts/Collector.gd` and `./godot-scripts/ReferenceCollectorCLI.gd` or `./godot-scripts/ReferenceCollectorCLI.gd` for Godot 3
+    - `./godot-scripts/CollectorGd4.gd` and `./godot-scripts/ReferenceCollectorCLIGd4.gd` or `./godot-scripts/ReferenceCollectorCLIGd4.gd` for Godot 4
+2. Running the GDScript code with Godot, either from the editor (`ReferenceCollector.gd` / `ReferenceCollectorGd4.gd`) or by calling Godot from the command line (`ReferenceCollectorCLI.gd` / `ReferenceCollectorCLIGd4.gd`).
 3. Running `gdscript_docs_maker` on the reference.json file that Godot generated in the previous step.
 
 <!-- TODO: turn into a note block on the website. -->
