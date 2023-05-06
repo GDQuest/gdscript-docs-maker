@@ -126,13 +126,13 @@ project.godot file.
 
 Options:
 
--h             -- Display this help message.
--o             -- directory path to output the documentation into.
--d             -- Name of a directory to find files and generate the code reference in the Godot project.
-                  You can use the option multiple times to generate a reference for multiple directories.
--f             -- Either `markdown` or `hugo`. If `hugo`, the output document includes a TOML front-matter
-                  at the top. Default: `markdown`.
--a             -- If -f is `hugo`, controls the author property in the TOML front-matter.
+-h/--help             -- Display this help message.
+-o/--output-directory -- directory path to output the documentation into.
+-d/--directory        -- Name of a directory to find files and generate the code reference in the Godot project.
+                         You can use the option multiple times to generate a reference for multiple directories.
+-f/--format           -- Either `markdown` or `hugo`. If `hugo`, the output document includes a TOML front-matter
+                         at the top. Default: `markdown`.
+-a/--author           -- If --format is `hugo`, controls the author property in the TOML front-matter.
 
 
 Usage example:
@@ -152,7 +152,7 @@ To use them:
 
 You can output markdown files for [hugo](https://gohugo.io/), the static website engine.
 
-To do so, call GDScript docs maker with the `-f hugo` option. You can use two extra flags with this:
+To do so, call GDScript docs maker with the `--format hugo` option. You can use two extra flags with this:
 
 ```bash
 --date YYYY-MM-DD, the date in iso format, if you want the documents to have a date other than today. Default: datetime.date.today()

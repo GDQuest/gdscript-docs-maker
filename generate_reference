@@ -20,13 +20,13 @@ echo_help() {
 
     Options:
 
-    -h             -- Display this help message.
-    -o             -- directory path to output the documentation into.
-    -d             -- Name of a directory to find files and generate the code reference in the Godot project.
-                      You can use the option multiple times to generate a reference for multiple directories.
-    -f             -- Either `markdown` or `hugo`. If `hugo`, the output document includes a TOML front-matter
-                      at the top. Default: `markdown`.
-    -a             -- If -f is `hugo`, controls the author property in the TOML front-matter.
+    -h/--help             -- Display this help message.
+    -o/--output-directory -- directory path to output the documentation into.
+    -d/--directory        -- Name of a directory to find files and generate the code reference in the Godot project.
+                             You can use the option multiple times to generate a reference for multiple directories.
+    -f/--format           -- Either `markdown` or `hugo`. If `hugo`, the output document includes a TOML front-matter
+                             at the top. Default: `markdown`.
+    -a/--author           -- If --format is `hugo`, controls the author property in the TOML front-matter.
 
 
     Usage example:
@@ -75,6 +75,11 @@ get_godot_cmd() {
 	fi
 }
 
+is_gnu_sed(){
+  sed --version >/dev/null 2>&1
+}
+
+
 # Interpret arguments
 
 if [ $(echo $1 | head -c 1) != "-" ]
@@ -82,31 +87,53 @@ then
 	shift 1 
 fi
 
-while getopts ':ho:d:f:a:' OPTION; do
-	case "$OPTION" in
-		h)
-			echo_help
-			;;
-		o)
-			output_directory=$OPTARG
-			;;
-		d)
-			directories_override="$directories_override $OPTARG"
-			;;
-		f)
-			format=$OPTARG
-			;;
-		a)
-			author=$OPTARG
-			;;
-		--)
-			break
-			;;
-		?)
-			echo "Missing arguments. Try 'generate_reference -h' for more information"
-			exit 1
-			;;
-	esac
+while getopts ':hodfa-:' OPTION; do
+	# Support of long options with this syntax: --format=hugo
+	if [ "$OPTION" = "-" ]; then
+		OPTION="${OPTARG%%=*}"
+		OPTARG="${OPTARG#$OPTION}"
+		OPTARG="${OPTARG#=}"
+	fi
+	
+	# Support of long options with this syntax: --format hugo
+	if [ "$OPTARG" = "" ]
+	then
+		OPTARG="$(eval echo \${$OPTIND})"; OPTIND=$(( $OPTIND + 1 ))
+	fi
+	if [ "$(echo $OPTARG | cut -c1)" = "-" ]
+	then
+		OPTARG=""
+		OPTIND=$(( $OPTIND - 1 ))
+	fi
+	
+	# Option processing
+	if [ "$OPTION" = "h" -o "$OPTION" = "help" ]
+	then
+		echo_help
+	elif [ "$OPTARG" = "" ]
+	then
+		echo "Missing value for option $OPTION. Try 'generate_reference --help' for more information"
+		exit 1
+	else
+		case "$OPTION" in
+			o | output-directory)
+				output_directory="$OPTARG"
+				;;
+			d | directory)
+				directories_override="$directories_override $OPTARG"
+				;;
+			f | format)
+				format="$OPTARG"
+				;;
+			a | author)
+				author="$OPTARG"
+				;;
+			?)
+				echo "Missing arguments. Try 'generate_reference --help' for more information"
+				exit 1
+				;;
+		esac	
+	fi
 done
 
 echo "Checking parameters"
@@ -152,18 +179,18 @@ then
      path_ref_collector="godot-scripts/ReferenceCollectorCLIGd4.gd"
   fi
   
-  # Override the content of the directories variable in ReferenceCollectorCLI.gd if we got -d arguments
+  # Override the content of the directories variable in ReferenceCollectorCLI.gd if we got --directory arguments
   file_ref_collector=$(mktemp)
   cat $path_ref_collector > "$file_ref_collector"
   if test "$directories_override" != ""; then
     echo "Setting directories"
     args=$(echo "$directories_override" | sed -r 's#([-/._a-zA-Z0-9]+)#"res://\1",#g' | sed -r 's/,$//')
         
-    if [ "$(echo $OSTYPE | head -c 6)" = "darwin" ] 
+    if is_gnu_sed 
     then
-      sed -i "" -r "s#^var directories.+#var directories := [$args]#" "$file_ref_collector"
-    else
       sed -ri "s#^var directories.+#var directories := [$args]#" "$file_ref_collector"
+    else
+      sed -i "" -r "s#^var directories.+#var directories := [$args]#" "$file_ref_collector"
     fi
   fi
   
