@@ -8,8 +8,44 @@ setlocal enabledelayedexpansion
 
 where /q godot*
 if ERRORLEVEL 1 goto no-godot else (
-   for /f "delims=" %%F in ('where godot*') do set godot=%%F
+   for /f "delims=" %%F in ('where godot*') do (
+      ::Search a command called "godot" in path
+      echo.%%F | findstr "godot\." 1>nul
+      if !ERRORLEVEL! == 0 (
+         for /f %%i in ('%%F -q --version') do (
+            set v=%%i
+            set v=!v:~0,1!
+            if !v! == 3 (
+               set is_godot_3=0
+               set godot=%%F
+            )
+            if !v! == 4 (
+               set is_godot_3=1
+               set godot=%%F
+            )
+         )		
+      )else (
+         echo.%%F | findstr "Godot_v3" 1>nul
+         
+         ::The console exe should not be used (especially when using Godot 3.5)
+         if !ERRORLEVEL! == 0 (
+            set is_godot_3=0
+            echo.%%F | findstr "_console.cmd" 1>nul
+            if !ERRORLEVEL! == 1 (
+               set godot=%%F
+            )
+         )else (
+            set is_godot_3=1
+            echo.%%F | findstr "_console.exe" 1>nul
+            if !ERRORLEVEL! == 1 (
+               set godot=%%F
+            )
+         )
+      )
+   )
 )
+if not defined godot goto no-godot
+
 ::Test for python
 where /q python
 if ERRORLEVEL 1 goto no-python
@@ -110,8 +146,13 @@ goto end
 
 :tail
 set gdscript_path=godot-scripts
-set gdscript_1=ReferenceCollectorCLI.gd
-set gdscript_2=Collector.gd
+if %is_godot_3% == 0 (
+   set gdscript_1=ReferenceCollectorCLI.gd
+   set gdscript_2=Collector.gd
+) else (
+   set gdscript_1=ReferenceCollectorCLIGd4.gd
+   set gdscript_2=CollectorGd4.gd
+)
 
 ::Copy CLI scripts to project location to be found in res://
 copy /Y "%gdscript_path%\%gdscript_1%" "%project_path%\%gdscript_1%" > nul
@@ -120,7 +161,11 @@ copy /Y "%gdscript_path%\%gdscript_2%" "%project_path%\%gdscript_2%" > nul
 echo Generating reference...
 
 ::Run godot in editor mode and runs the collector script
-%godot% -e -q -s --no-window --path "%project_path%" %gdscript_1% > nul
+if %is_godot_3% == 0 (
+   %godot% -e -q -s --no-window --path "%project_path%" %gdscript_1% > nul
+) else (
+   %godot% -e -q --quit -s --headless --path "%project_path%" %gdscript_1% 2> nul > nul
+)
 
 ::Clean up
 erase /Q "%project_path%\%gdscript_1%"

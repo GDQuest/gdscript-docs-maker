@@ -39,42 +39,101 @@ EOT
 	exit 0
 }
 
+get_godot_cmd() {
+	if command -v godot > /dev/null
+	then
+		echo godot
+	else
+		godotcmd=""
+		
+		if [ "$(echo $OSTYPE | head -c 6)" = "darwin" ] 
+		then
+			godotcmd=$(find $(echo $PATH | tr ":" " ") -name "Godot*.app" -maxdepth 1 2>/dev/null | head -n 1 | tr -d '\n')
+			if [ "$(echo $godotcmd | tr -d '\n' | tail -c 4)" = ".app" ]
+			then
+				godotcmd="$godotcmd/Contents/MacOS/Godot"
+			fi
+		fi
+				
+		if [ "$godotcmd" = "" ]
+		then
+			if command -v zsh > /dev/null
+ 			then
+				godotcmd=$(zsh -c "whence -ap -m 'Godot*' | head -n 1")
+			elif command -v bash > /dev/null
+			then
+				godotcmd=$(bash -c "compgen -c Godot | head -n 1")
+			fi
+		fi 
+		
+		if [ "$godotcmd" = "" ]
+		then
+			echo godot
+		else
+			echo $godotcmd
+		fi 
+	fi
+}
+
+is_gnu_sed(){
+  sed --version >/dev/null 2>&1
+}
+
+
 # Interpret arguments
 
-arguments=$(getopt --name "generate_reference" -o "h,o:,d:,f:,a:" -l "help,output-directory:,directories:" -- "$@")
+if [ $(echo $1 | head -c 1) != "-" ]
+then
+	shift 1 
+fi
 
-eval set -- "$arguments"
-while true; do
-	case "$1" in
-	-h | --help)
-    echo_help
-		shift
-		;;
-	-o | --output-directory)
-		output_directory=$2
-		shift 2
-		;;
-	-d | --directory)
-		directories_override="$directories_override $2"
-		shift 2
-		;;
-	-f | --format)
-		format=$2
-		shift 2
-		;;
-	-a | --author)
-		author=$2
-		shift 2
-		;;
-	--)
-		shift
-		break
-		;;
-	*)
-		echo "Missing arguments. Try 'generate_reference --help' for more information"
+while getopts ':hodfa-:' OPTION; do
+	# Support of long options with this syntax: --format=hugo
+	if [ "$OPTION" = "-" ]; then
+		OPTION="${OPTARG%%=*}"
+		OPTARG="${OPTARG#$OPTION}"
+		OPTARG="${OPTARG#=}"
+	fi
+	
+	# Support of long options with this syntax: --format hugo
+	if [ "$OPTARG" = "" ]
+	then
+		OPTARG="$(eval echo \${$OPTIND})"; OPTIND=$(( $OPTIND + 1 ))
+	fi
+	if [ "$(echo $OPTARG | cut -c1)" = "-" ]
+	then
+		OPTARG=""
+		OPTIND=$(( $OPTIND - 1 ))
+	fi
+	
+	# Option processing
+	if [ "$OPTION" = "h" -o "$OPTION" = "help" ]
+	then
+		echo_help
+	elif [ "$OPTARG" = "" ]
+	then
+		echo "Missing value for option $OPTION. Try 'generate_reference --help' for more information"
 		exit 1
-		;;
-	esac
+	else
+		case "$OPTION" in
+			o | output-directory)
+				output_directory="$OPTARG"
+				;;
+			d | directory)
+				directories_override="$directories_override $OPTARG"
+				;;
+			f | format)
+				format="$OPTARG"
+				;;
+			a | author)
+				author="$OPTARG"
+				;;
+			?)
+				echo "Missing arguments. Try 'generate_reference --help' for more information"
+				exit 1
+				;;
+		esac	
+	fi
 done
 
 echo "Checking parameters"
@@ -96,32 +155,69 @@ if ! test -f "$godot_project_file"; then
 fi
 
 
-
+ERROR_LOG=$(mktemp)
+LOG=$(mktemp)
 godot_project_dir=$(dirname "$godot_project_file")
+godot=$(get_godot_cmd)
 
-path_ref_collector="godot-scripts/ReferenceCollectorCLI.gd"
-path_collector="godot-scripts/Collector.gd"
+$godot --version 2>"$ERROR_LOG" >/dev/null
+test $? -eq 0 -o $? -eq 255
+godot_exec_ok=$?
 
-# Override the content of the directories variable in ReferenceCollectorCLI.gd if we got --directory arguments
-file_ref_collector=$(mktemp)
-cat $path_ref_collector > "$file_ref_collector"
-if test "$directories_override" != ""; then
-  echo "Setting directories"
-	args=$(echo "$directories_override" | sed -r 's#([-/._a-zA-Z0-9]+)#"res://\1",#g' | sed -r 's/,$//')
-	sed -ri "s#^var directories.+#var directories := [$args]#" "$file_ref_collector"
+if [ $godot_exec_ok -eq 0 ]
+then
+  version=$($godot --version | tail -n 1 | cut -c1-1)
+
+  if [ "$version" = "3" ]
+  then
+     ref_collector="ReferenceCollectorCLI.gd"
+     path_collector="godot-scripts/Collector.gd"
+     path_ref_collector="godot-scripts/ReferenceCollectorCLI.gd"
+  else
+     ref_collector="ReferenceCollectorCLIGd4.gd"
+     path_collector="godot-scripts/CollectorGd4.gd"
+     path_ref_collector="godot-scripts/ReferenceCollectorCLIGd4.gd"
+  fi
+  
+  # Override the content of the directories variable in ReferenceCollectorCLI.gd if we got --directory arguments
+  file_ref_collector=$(mktemp)
+  cat $path_ref_collector > "$file_ref_collector"
+  if test "$directories_override" != ""; then
+    echo "Setting directories"
+    args=$(echo "$directories_override" | sed -r 's#([-/._a-zA-Z0-9]+)#"res://\1",#g' | sed -r 's/,$//')
+        
+    if is_gnu_sed 
+    then
+      sed -ri "s#^var directories.+#var directories := [$args]#" "$file_ref_collector"
+    else
+      sed -i "" -r "s#^var directories.+#var directories := [$args]#" "$file_ref_collector"
+    fi
+  fi
+  
+  echo "Copying collectors to project directory"
+  
+  cp "$file_ref_collector" "$godot_project_dir/$(basename $path_ref_collector)" >/dev/null
+  cp $path_collector "$godot_project_dir" >/dev/null
+  
+  echo "Generating reference json data..."
+  
+  if [ "$version" = "3" ]
+  then
+     $godot --editor --quit --no-window --script $ref_collector \
+       --path "$godot_project_dir" 2>"$ERROR_LOG" >"$LOG"
+  else
+     $godot --editor --quit --headless --script $ref_collector \
+       --path "$godot_project_dir" 2>"$ERROR_LOG" >"$LOG"
+  fi
+  
+  godot_exec_ok=1
+  if grep -q -F "Saved data to res://reference.json" "$LOG" >/dev/null 2>/dev/null 
+  then
+    godot_exec_ok=0
+  fi
 fi
 
-echo "Copying collectors to project directory"
-
-cp "$file_ref_collector" "$godot_project_dir/$(basename $path_ref_collector)" >/dev/null
-cp $path_collector "$godot_project_dir" >/dev/null
-
-echo "Generating reference json data..."
-
-ERROR_LOG=$(mktemp)
-
-if ! godot --editor --quit --no-window --script ReferenceCollectorCLI.gd \
-  --path "$godot_project_dir" 2>"$ERROR_LOG" >/dev/null
+if [ $godot_exec_ok -ne 0 ]
 then
   ERRORS=$(cat "$ERROR_LOG")
   cat <<EOT
@@ -134,6 +230,7 @@ This was the error log:
 $ERRORS
 EOT
   rm "$ERROR_LOG"
+  rm "$LOG"
   exit 1
 fi
 
@@ -162,6 +259,7 @@ fi
 
 echo "Cleaning up..."
 rm "$ERROR_LOG" >/dev/null
+rm "$LOG" >/dev/null
 rm "$godot_project_dir/$(basename $path_ref_collector)" >/dev/null
 rm "$godot_project_dir/$(basename $path_collector)" >/dev/null
 rm "$godot_project_dir/reference.json" >/dev/null
