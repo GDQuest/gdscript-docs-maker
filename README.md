@@ -8,7 +8,7 @@
 
 GDScript Docs Maker is a set of tools to convert documentation you write inside your code to an online or offline code reference in the [markdown](https://daringfireball.net/projects/markdown/syntax) or [hugo](https://gohugo.io/) format. If you make plugins or a framework for Godot, GDScript Docs Maker will generate API reference documentation from your code.
 
-It creates documents following Godot's built-in class reference. You can see an example with our [Godot Steering Toolkit documentation](https://www.gdquest.com/docs/godot-steering-toolkit/reference/)
+It creates documents following Godot's built-in class reference. You can see an example with our [Godot Steering Toolkit documentation](https://gdquest.gitbook.io/godot-3-steering-ai-framework-reference/)
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 
