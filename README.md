@@ -80,25 +80,6 @@ func reset() -> void:
 	angular = 0.0
 ```
 
-Example of docstrings for Godot 4:
-
-```gdscript
-## A linear and angular amount of acceleration.
-class_name GSTTargetAcceleration
-
-
-## Linear acceleration
-var linear: = Vector3.ZERO
-## Angular acceleration
-var angular: = 0.0
-
-
-## Resets the accelerations to zero
-func reset() -> void:
-	linear = Vector3.ZERO
-	angular = 0.0
-```
-
 If you need long docstrings, you can use multiple commented lines:
 
 ```gdscript
