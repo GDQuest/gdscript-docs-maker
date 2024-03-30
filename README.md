@@ -8,7 +8,9 @@
 
 GDScript Docs Maker is a set of tools to convert documentation you write inside your code to an online or offline code reference in the [markdown](https://daringfireball.net/projects/markdown/syntax) or [hugo](https://gohugo.io/) format. If you make plugins or a framework for Godot, GDScript Docs Maker will generate API reference documentation from your code.
 
-It creates documents following Godot's built-in class reference. You can see an example with our [Godot Steering Toolkit documentation](https://gdquest.gitbook.io/godot-3-steering-ai-framework-reference/)
+**It is for Godot 3. The tool does not work with Godot 4.**
+
+GDScript Docs Maker creates documents following Godot's built-in class reference. You can see an example with our [Godot Steering Toolkit documentation](https://gdquest.gitbook.io/godot-3-steering-ai-framework-reference/)
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 
@@ -27,7 +29,7 @@ It creates documents following Godot's built-in class reference. You can see an 
 
 GDScript Docs Maker can be either used using the official [Docker image](https://hub.docker.com/r/gdquest/gdscript-docs-maker) or by installing it locally. For the docker image, only [Docker](https://www.docker.com/get-started) is required.
 
-For the local installation, Godot 3.2+ and Python 3.7+ are required.
+For the local installation, Godot 3.2+ and Python 3.7+ are required. **Note that GDScript Docs Maker only works with Godot 3. It is not compatible with Godot 4.**
 
 ## Using the container image
 
