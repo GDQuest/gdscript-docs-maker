@@ -12,7 +12,7 @@ var is_recursive: = true
 var patterns := ["*.gd"]
 
 
-func _init() -> void:
+func _initialize() -> void:
 	var files := PackedStringArray()
 	for dirpath in directories:
 		files.append_array(Collector.find_files(dirpath, patterns, is_recursive))
